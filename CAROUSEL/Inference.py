@@ -1,7 +1,7 @@
 import torch
 from torchvision import transforms
 from PIL import Image
-from Utils import save_result, denorm
+from Utils import denorm
 from Model import AvatarFusionModel
 import os
 
