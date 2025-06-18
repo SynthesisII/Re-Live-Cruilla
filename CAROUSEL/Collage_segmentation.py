@@ -6,7 +6,9 @@ from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
 
-# Creates a horizontal collage of: original image, inpainted background, segmented avatar, and mask
+# ----------
+# Create Collage Function
+# ----------
 def crear_collage(fondo_path, avatar_path, mask_path, real_path, save_path):
     fondo = cv2.imread(fondo_path)
     avatar = cv2.imread(avatar_path)
@@ -14,16 +16,18 @@ def crear_collage(fondo_path, avatar_path, mask_path, real_path, save_path):
     real = cv2.imread(real_path)
 
     mask_rgb = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-    
+
     # Ensure all images have the same height
     height = min(fondo.shape[0], avatar.shape[0], mask_rgb.shape[0], real.shape[0])
     fondo, avatar, mask_rgb, real = fondo[:height], avatar[:height], mask_rgb[:height], real[:height]
-    
+
     # Concatenate images side by side
     collage = cv2.hconcat([real, fondo, avatar, mask_rgb])
     cv2.imwrite(save_path, collage)
 
-# Extracts all ZIP files in a directory into a temporary folder
+# ----------
+# Unzip ZIP Files
+# ----------
 def unzip_all_zips(base_dir, temp_dir):
     for root, _, files in os.walk(base_dir):
         for file in files:
@@ -34,12 +38,14 @@ def unzip_all_zips(base_dir, temp_dir):
                     os.makedirs(extract_path, exist_ok=True)
                     zip_ref.extractall(extract_path)
 
-# Runs person segmentation, background inpainting, avatar extraction, and collage creation
+# ----------
+# Main Dataset Creation
+# ----------
 def segmentar_y_crear_dataset(base_dir, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     temp_unzip_dir = "/tmp/unzipped_cruilla"
     os.makedirs(temp_unzip_dir, exist_ok=True)
-    
+
     unzip_all_zips(base_dir, temp_unzip_dir)
 
     # Load a pretrained Mask R-CNN model from Detectron2
@@ -62,23 +68,22 @@ def segmentar_y_crear_dataset(base_dir, output_dir):
 
             outputs = predictor(image)
             instances = outputs["instances"]
-            
-            # Select only 'person' class instances (class ID 0)
+
             person_indices = instances.pred_classes == 0
             persons = instances[person_indices]
             masks = persons.pred_masks.cpu().numpy()
 
             for i, mask in enumerate(masks):
                 mask_uint8 = (mask * 255).astype(np.uint8)
-                
+
                 # Create segmented avatar
                 avatar = np.copy(image)
                 avatar[mask == 0] = 0
-                
-                # Inpaint background (remove person from scene)
+
+                # Inpaint background
                 fondo = cv2.inpaint(image, mask_uint8, 3, cv2.INPAINT_TELEA)
 
-                # Save temporary images to pass to collage function
+                # Save intermediate files for collage
                 temp_mask_path = "/tmp/temp_mask.png"
                 temp_avatar_path = "/tmp/temp_avatar.png"
                 temp_fondo_path = "/tmp/temp_fondo.png"
@@ -92,7 +97,9 @@ def segmentar_y_crear_dataset(base_dir, output_dir):
 
                 collage_count += 1
 
-# Main entry point: unzip images, segment persons, and save collages
+# ----------
+# Main Entry Point
+# ----------
 if __name__ == "__main__":
     base_folder = "/export/hhome/uabcru03/1.CRUILLA"
     output_folder = "/export/hhome/uabcru03/Carrousel/Dataset2"
