@@ -15,21 +15,72 @@ Re-Live-Cruilla/
 ├── AVATAR/                   # Folder for the AVATAR scripts
 │
 ├── CARROUSEL/                # Folder for the CAROUSEL scripts
-│   │
-│   ├── Collage_segmentation.py   # [STEP 1] Generates dataset collages from ZIP images using Mask R-CNN
-│   ├── Dataset.py                # [STEP 2] PyTorch Dataset class to load and preprocess collage images
-│   ├── Model.py                  # [STEP 3] Defines the encoder-decoder model using ResNet + Transformer
-│   ├── Train.py                  # [STEP 4] Training script using L1, perceptual, and masked losses
-│   ├── Evaluate.py               # [STEP 5] Loads a trained model and evaluates PSNR/SSIM on validation data
-│   └── Utils.py                  # Utility functions: saving images, metrics, perceptual loss, etc.
+│   ├── Collage_segmentation.py
+│   ├── Dataset.py
+│   ├── Model.py
+│   ├── Train.py
+│   ├── Evaluate.py
+│   └── Utils.py
 │
 ├── PET/                      # Folder for the PET scripts
+│   ├── Data/
+│   │   ├── Body/
+│   │   ├── Face/
+│   │   ├── Head/
+│   │   ├── Torso/
+│   │   └── AccessoryDataset.csv
+│   ├── 1_TopN.py             # Scores accessories for each user using Top-N cosine similarity
+│   ├── 1.5_Plot_Pet.py       # Generates bar plots and final visualizations combining pet and genre analysis
+│   ├── data.py               # Utility functions: load images, validate dataset, transform input vectors
+│   ├── main.py               # Main pipeline to generate the personalized pets based on user data
+│   └── PetEval.py            # Lightweight alternative pet generation using KNN and random selection
 │
-└── README.txt               
+└── README.txt
 
 -------------------------
 PET: Scripts Explanation
 -------------------------
+1_TopN.py
+---------
+- Loads user and accessory vectors from CSV files.
+- Computes cosine similarity between user profiles and accessory features.
+- Selects Top-N matching accessories per category (Head, Torso, Face).
+- Evaluates all combinations to assign the optimal set to each user.
+- Outputs a new CSV file with full vectors for user + selected accessories.
+
+1.5_Plot_Pet.py
+---------------
+- Loads the CSV generated in 1_TopN.py.
+- For each user:
+    - Creates a pet image by overlaying accessories onto a base body.
+    - Plots a bar chart comparing user preferences with accessory vectors.
+    - Optionally combines both into a single image output.
+
+data.py
+-------
+- `get_specific_file`: returns both the image and vector for a given accessory file.
+- `get_some_data`: generates synthetic user data for testing (random genre scores).
+- `data_transform`: aligns arbitrary genre columns to system's internal order.
+- `check_dataset`: validates AccessoryDataset.csv and checks image paths.
+
+main.py
+-------
+- Initializes canvas and loads a base body image.
+- Loads accessory metadata from CSV.
+- Normalizes user vectors and uses a KNN-like strategy to select one accessory per type.
+- Pastes accessories in visual layers (Torso → Face → Head) onto the base body.
+- Can display and/or save the final image.
+
+PetEval.py
+----------
+- Lightweight standalone script for evaluating pets.
+- Uses random KNN logic to assign accessories based on vector proximity.
+- Designed for fast generation of sample outputs or debugging logic.
+
+Data folders
+----------
+.png image accesories for Torso, Head and Face and the base Pet. Also, the .csv with 
+the vectors corresponding to each accesory.
 
 -------------------------
 AVATAR: Scripts Explanation
