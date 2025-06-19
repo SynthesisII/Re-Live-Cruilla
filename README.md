@@ -1,4 +1,3 @@
-
 # RE:LIVE CRUÏLLA - Codebase Overview
 
 This repository contains all the necessary scripts to Train, Evaluate, and Test the three components 
@@ -7,43 +6,43 @@ structure is organized into three main folders, each corresponding to one level 
 Re:Live Cruïlla.
 
 ## Project Structure
-
-Re-Live-Cruilla/
-│
-├── AVATAR/                  
-│   ├── AvatarGen_Base.py     
+<pre>
+Re-Live-Cruilla/  
+│  
+├── AVATAR/                    
+│   ├── AvatarGen_Base.py       
 │   ├── AvatarGen.py          
-│   ├── FeatureExtractor.py   
+│   ├── FeatureExtractor.py     
 │   ├── utils.py              
 │   └── requirements.txt      
-│
-├── CARROUSEL/                
-│   ├── Collage_segmentation.py
-│   ├── Dataset.py
-│   ├── Model.py
-│   ├── Train.py
-│   ├── Evaluate.py
-│   ├── Inference.py
-│   └── Utils.py
-│
-├── PET/                      
-│   ├── Data/
-│   │   ├── Body/
-│   │   ├── Face/
-│   │   ├── Head/
-│   │   ├── Torso/
-│   │   └── AccessoryDataset.csv
+│  
+├── CARROUSEL/                  
+│   ├── Collage_segmentation.py  
+│   ├── Dataset.py  
+│   ├── Model.py  
+│   ├── Train.py  
+│   ├── Evaluate.py  
+│   ├── Inference.py  
+│   └── Utils.py  
+│  
+├── PET/                        
+│   ├── Data/  
+│   │   ├── Body/  
+│   │   ├── Face/  
+│   │   ├── Head/  
+│   │   ├── Torso/  
+│   │   └── AccessoryDataset.csv  
 │   ├── 1_TopN.py            
 │   ├── 1.5_Plot_Pet.py       
 │   ├── data.py               
 │   ├── main.py               
 │   └── PetEval.py            
-│
-└── README.txt
+│  
+└── README.txt  
+</pre>
 
--------------------------
 ## PET: Scripts Explanation
--------------------------
+
 ### 1_TopN.py
 ---------
 - Loads user and accessory vectors from CSV files.
@@ -86,9 +85,7 @@ Re-Live-Cruilla/
 .png image accesories for Torso, Head and Face and the base Pet. Also, the .csv with 
 the vectors corresponding to each accesory.
 
--------------------------
 ## AVATAR: Scripts Explanation
--------------------------
 
 ### AvatarGen_Base.py
 -----------------
@@ -120,9 +117,7 @@ the vectors corresponding to each accesory.
     - Detected race and gender
 - `remove_background`: removes the background of an image using rembg.
 
--------------------------
 ## CAROUSEL: Script Explanation
--------------------------
 
 The CAROUSEL level is the most ambitious part of the Re:Live Cruïlla pipeline. It focuses on extracting
 a person (avatar) from a real-world scene, removing the background, and learning how to reconstruct
