@@ -13,6 +13,11 @@ Project Structure
 Re-Live-Cruilla/
 │
 ├── AVATAR/                   # Folder for the AVATAR scripts
+│   ├── AvatarGen_Base.py     
+│   ├── AvatarGen.py          
+│   ├── FeatureExtractor.py   
+│   ├── utils.py              
+│   └── requirements.txt      
 │
 ├── CARROUSEL/                # Folder for the CAROUSEL scripts
 │   ├── Collage_segmentation.py
@@ -30,11 +35,11 @@ Re-Live-Cruilla/
 │   │   ├── Head/
 │   │   ├── Torso/
 │   │   └── AccessoryDataset.csv
-│   ├── 1_TopN.py             # Scores accessories for each user using Top-N cosine similarity
-│   ├── 1.5_Plot_Pet.py       # Generates bar plots and final visualizations combining pet and genre analysis
-│   ├── data.py               # Utility functions: load images, validate dataset, transform input vectors
-│   ├── main.py               # Main pipeline to generate the personalized pets based on user data
-│   └── PetEval.py            # Lightweight alternative pet generation using KNN and random selection
+│   ├── 1_TopN.py            
+│   ├── 1.5_Plot_Pet.py       
+│   ├── data.py               
+│   ├── main.py               
+│   └── PetEval.py            
 │
 └── README.txt
 
@@ -86,6 +91,36 @@ the vectors corresponding to each accesory.
 -------------------------
 AVATAR: Scripts Explanation
 -------------------------
+
+AvatarGen_Base.py
+-----------------
+- Loads the base Stable Diffusion XL (SDXL) pipeline.
+- Takes a user image and a prompt generated from analysis data.
+- Runs two passes: first with the base SDXL model, then with the refiner.
+- Outputs a clean 1024x1024 avatar with background removed.
+
+AvatarGen.py
+------------
+- Similar to AvatarGen_Base but loads a custom fine-tuned LoRA checkpoint.
+- Injects the new weights into the UNet of the base model.
+- Allows more personalized avatars that better reflect the user's preferences.
+- Runs the same two-stage generation: base + refinement.
+
+FeatureExtractor.py
+-------------------
+- Uses DeepFace to analyze the input image and detect:
+    - Dominant gender
+    - Dominant race
+- Identifies the top 3 music genres from the user preference vector.
+- Saves a JSON with demographic and preference metadata used in prompt generation.
+
+utils.py
+--------
+- `center_crop_to_square`: crops any image to a square before resizing to 1024x1024.
+- `generate_weighted_prompt`: builds a detailed textual prompt using:
+    - Genre-based clothing/accessory mappings
+    - Detected race and gender
+- `remove_background`: removes the background of an image using rembg.
 
 -------------------------
 CAROUSEL: Script Explanation
