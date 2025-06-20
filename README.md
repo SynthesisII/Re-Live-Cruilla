@@ -32,16 +32,29 @@ Re-Live-Cruilla/
 │   │   ├── Head/  
 │   │   ├── Torso/  
 │   │   └── AccessoryDataset.csv  
+│   ├── 0_Real_dataset_generator.py     
+│   ├── 0.5_Dataset_analysis.py     
 │   ├── 1_TopN.py            
-│   ├── 1.5_Plot_Pet.py       
-│   ├── data.py               
-│   ├── main.py               
+│   ├── 1.5_Plot_Pet.py                    
 │   └── PetEval.py            
 │  
 └── README.txt  
 </pre>
 
 ## PET: Scripts Explanation
+
+### 0_Real_dataset_generator.py  
+-------
+- Determines the number of users, genres and profiles distribution.
+- Generates the users with its corresponding vectors.
+- Saves them in a .csv.
+
+### 0.5_Dataset_analysis.py  
+-------
+- Explores the synthetic user's dataset.
+- The objective is to observe diversity, check representation and observe clusterings.
+- Uses techniques such as PCA, UMAP and statistical visualizations. 
+
 
 ### 1_TopN.py
 ---------
@@ -58,21 +71,6 @@ Re-Live-Cruilla/
     - Creates a pet image by overlaying accessories onto a base body.
     - Plots a bar chart comparing user preferences with accessory vectors.
     - Optionally combines both into a single image output.
-
-### data.py
--------
-- `get_specific_file`: returns both the image and vector for a given accessory file.
-- `get_some_data`: generates synthetic user data for testing (random genre scores).
-- `data_transform`: aligns arbitrary genre columns to system's internal order.
-- `check_dataset`: validates AccessoryDataset.csv and checks image paths.
-
-### main.py
--------
-- Initializes canvas and loads a base body image.
-- Loads accessory metadata from CSV.
-- Normalizes user vectors and uses a KNN-like strategy to select one accessory per type.
-- Pastes accessories in visual layers (Torso → Face → Head) onto the base body.
-- Can display and/or save the final image.
 
 ### PetEval.py
 ----------
