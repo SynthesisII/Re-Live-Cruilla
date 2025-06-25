@@ -13,7 +13,7 @@ if len(sys.argv) < 2:
 input_image_path = sys.argv[1]
 print(f"Using input image: {input_image_path}")
 
-output_json_path = "/hhome/uabcru03/Avatar/Avatar_Base_Ref/analysis_result.json"
+output_json_path = "AVATAR/analysis_result.json"
 user_vector = [0.5, 0.9, 0.11, 0.1, 0.3, 0.1, 0.1, 0.26, 0.23, 0.8, 0.7, 0.23, 0.21, 0.02, 0.23, 0.52, 0.34, 0.2]
 genres = ['Comedy','Art','Chill','Food','Social','Rock','Pop','Soul','Jazz','Electronic','Folk','Reggae','Hip-hop','Punk','Rap','Classical','Indie','Other']
 

@@ -21,7 +21,7 @@ input_image_path = sys.argv[1]
 print(f"Using input image: {input_image_path}")
 base_model_path = "stabilityai/stable-diffusion-xl-base-1.0"
 refiner_model_path = "stabilityai/stable-diffusion-xl-refiner-1.0"
-output_path_refined = "/hhome/uabcru03/Avatar/Avatar_Base_Ref/images/Avatar_Finetuned.png"
+output_path_refined = "AVATAR/images/Avatar_Finetuned.png"
 
 # --- LOAD ANALYSIS ---
 with open(json_input_path, 'r') as f:
@@ -60,7 +60,7 @@ base_pipe = AutoPipelineForImage2Image.from_pretrained(
 ).to(device)
 
 # Load your UNet
-state_dict = load_file("/hhome/uabcru03/Avatar/Avatar_Base_Ref/Good_prompts.safetensors")
+state_dict = load_file("AVATAR/Good_prompts.safetensors")
 base_pipe.unet.load_state_dict(state_dict, strict=False)
 
 
@@ -76,7 +76,7 @@ refiner_pipe = AutoPipelineForImage2Image.from_pretrained(
 input_image = load_image(input_image_path).convert("RGB")
 input_image = center_crop_to_square(input_image)
 input_image = input_image.resize((1024, 1024))
-input_image.save("/hhome/uabcru03/Avatar/Avatar_Base_Ref/images/cropped.png")
+input_image.save("AVATAR/images/cropped.png")
 
 # First pass with base model (now using input image)
 print("Generating base image with reference...")

@@ -73,7 +73,7 @@ def create_pet_image(user_id, torso_name, head_name, face_name):
 
     # Save the resulting pet image
     pet_image_name = f'Pet_{user_id}.png'
-    base_image.save(pet_image_name) # REMOVE
+    base_image.save(f"PET/{pet_image_name}") # REMOVE?
     return pet_image_name, base_image
 
 # ===================
@@ -98,7 +98,7 @@ genres = ['Comedy','Art','Chill','Food','Social','Rock','Pop','Soul',
 # Define Single User Vector
 # ============================
 
-user_vector = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.9, 0.0, 0.0, 0.0,
+user_vector = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0,
                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) # IDK how this will be loaded
 print(f"Working with user vector: {user_vector}")
 
