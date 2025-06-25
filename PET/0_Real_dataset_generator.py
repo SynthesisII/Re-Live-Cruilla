@@ -19,7 +19,6 @@ de los perfiles de usuario reales.
 
 El resultado se guarda en un archivo CSV llamado 'diverse_users_100k.csv'.
 
-Autor: ChatGPT + Judith
 """
 
 import numpy as np
