@@ -1,5 +1,5 @@
 """
-📘 Análisis visual del dataset de usuarios musicales (100.000 vectores)
+Análisis visual del dataset de usuarios musicales (100.000 vectores)
 
 Este script explora un conjunto sintético de usuarios donde cada uno está representado 
 por un vector de 18 números entre 0 y 1, indicando cuánto le gusta cada estilo musical.
