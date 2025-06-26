@@ -60,7 +60,7 @@ base_pipe = AutoPipelineForImage2Image.from_pretrained(
 ).to(device)
 
 # Load your UNet
-state_dict = load_file("AVATAR/Good_prompts.safetensors")
+state_dict = load_file("/hhome/uabcru03/Avatar/Avatar_Base_Ref/Good_prompts.safetensors")
 base_pipe.unet.load_state_dict(state_dict, strict=False)
 
 
@@ -72,11 +72,14 @@ refiner_pipe = AutoPipelineForImage2Image.from_pretrained(
     use_safetensors=True
 ).to(device)
 
+generator = torch.Generator(device).manual_seed(42)
+
 # --- PROCESS IMAGE ---
-input_image = load_image(input_image_path).convert("RGB")
+input_image = load_image(input_image_path)
+if input_image.mode != "RGB":
+    input_image = input_image.convert("RGB")
 input_image = center_crop_to_square(input_image)
 input_image = input_image.resize((1024, 1024))
-input_image.save("AVATAR/images/cropped.png")
 
 # First pass with base model (now using input image)
 print("Generating base image with reference...")
@@ -87,8 +90,7 @@ base_result = base_pipe(
     strength=0.7,  # Stronger transformation for base model
     guidance_scale=8.5,
     num_inference_steps=30,
-    #output_type="latent",
-    generator=torch.Generator(device).manual_seed(42)
+    generator=generator
 ).images
 
 base_image = base_result[0]
@@ -101,7 +103,8 @@ refined_result = refiner_pipe(
     image=base_image,  # Refine the base output
     strength=0.3,  # Subtler refinement
     num_inference_steps=30,
-    generator=torch.Generator(device).manual_seed(42)
+    generator=generator
 )
-image_nobg = remove_background(refined_result.images[0])
-image_nobg.save(output_path_refined)
+refined_result.images[0].save(output_path_refined)
+# image_nobg = remove_background(refined_result.images[0])
+# image_nobg.save(output_path_refined_no_bg)
