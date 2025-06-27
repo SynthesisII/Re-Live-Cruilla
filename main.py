@@ -7,11 +7,15 @@ from functools import partial
 from pathlib import Path
 
 import gradio as gr
+import numpy as np
 import qrcode
 from loguru import logger
 from PIL import Image
 
+from gradio_webcam_qr import webcam_qr
+
 import config
+import labels
 
 
 class State(Enum):
@@ -22,9 +26,10 @@ class State(Enum):
 
 
 # Global app state
-state: State = State.results
+state: State = State.home
 user_image: Image.Image | None = None
 result_qr_image: Image.Image | None = None
+user_vector: np.ndarray | None = None
 
 
 # Parse arguments
@@ -116,15 +121,22 @@ footer {{
     pointer-events: none;
 }}
 
+#webcam_qr canvas {{
+    position: fixed;
+    width: 37vw;
+    height: 37vh;
+    top: 5vh;
+    right: 7vw;
+    visibility: visible;
+}}
+#webcam_qr {{
+    visibility: hidden;
+}}
+
+
 .webcam {{
     border-width: 0px !important;
     pointer-events: none;
-}}
-#webcam_qr video {{
-    width: 34vw;
-    position: fixed;
-    top: -26vh;
-    right: 8vw;
 }}
 #webcam_photo video {{
     width: 57vw;
@@ -484,6 +496,12 @@ def set_result_image(image: Image.Image | None):
     result_image = image
 
 
+def set_user_vector(vector: np.ndarray | None):
+    global user_vector
+    logger.debug(f"Set user vector: {vector}")
+    user_vector = vector
+
+
 def get_result_image():
     return result_image
 
@@ -594,14 +612,28 @@ def on_demo_load():
     return gr_image_survey_qr
 
 
+def on_webcam_qr(gr_webcam_qr):
+    logger.info(f"Detected QR: {gr_webcam_qr}")
+
+    # TODO: Parse QR data and check if it is valid
+    if False:
+        gr.Warning(labels.error_qr_data)
+        return webcam_qr(scan_qr_enabled=True)
+    
+    set_user_vector(np.arange(8))
+    set_state(State.take_photo)
+    return webcam_qr(scan_qr_enabled=False)
+
+
+
+
 with gr.Blocks(js=main_js, css=main_css) as demo:
     gr_timer_update_state = gr.Timer(config.ui_update_state_interval)
     with gr.Column(visible=state is State.home) as gr_col_home:
         gr.HTML(html_home)
-        gr_webcam_qr = gr.Image(
-            sources="webcam",
+        gr_webcam_qr = webcam_qr(
             elem_id="webcam_qr",
-            elem_classes="webcam",
+            scan_qr_once=False,
         )
         gr_image_survey_qr = gr.Image(
             show_download_button=False,
@@ -677,6 +709,13 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
         None,
         [gr_col_home, gr_col_take_photo]
     )
+    gr_webcam_qr.change(
+        on_webcam_qr,
+        gr_webcam_qr,
+        gr_webcam_qr,
+        show_progress=False,
+    )
+
     # gr_button_gen.click(on_button_gen, show_progress=False)
     # gr_button_result_restart.click(
     #     on_button_result_restart,

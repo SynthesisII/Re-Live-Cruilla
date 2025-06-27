@@ -27,20 +27,14 @@ class webcam_qr(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        mirror_webcam: bool = True,
         placeholder: str | None = None,
-        show_fullscreen_button: bool = True,
         scan_qr_enabled: bool = True,
-        scan_qr_interval: int = 100,
         scan_qr_once: bool = True,
     ):
-        self.mirror_webcam = mirror_webcam
         self.height = height
         self.width = width
-        self.show_fullscreen_button = show_fullscreen_button
         self.placeholder = placeholder
         self.scan_qr_enabled = scan_qr_enabled
-        self.scan_qr_interval = scan_qr_interval
         self.scan_qr_once = scan_qr_once
         super().__init__(
             label=label,

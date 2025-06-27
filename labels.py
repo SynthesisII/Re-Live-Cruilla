@@ -1,0 +1,1 @@
+error_qr_data = "Error al llegir el codi QR. Si us plau, intenta-ho de nou."

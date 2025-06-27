@@ -2,22 +2,13 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
-	import {
-		type I18nFormatter,
-	} from "@gradio/utils";
 	import Webcam from "./Webcam.svelte";
 
 	export let value: null | string = null;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
-	export let mirror_webcam: boolean;
-	export let root: string;
-	export let i18n: I18nFormatter;
-	export let show_fullscreen_button = true;
-
 	export let scanQREnabled:boolean;
-	export let scanQRinterval: number;
 	export let scanQROnce: boolean;
 
 	const dispatch = createEventDispatcher<{
@@ -34,14 +25,9 @@
 		style:width={"auto"}
 	>
 		<Webcam
-			{root}
 			bind:value
 			on:error
-			{mirror_webcam}
-			{show_fullscreen_button}
-			{i18n}
 			{scanQREnabled}
-			{scanQRinterval}
 			{scanQROnce}
 			on:change={() => dispatch("change")}
 		/>
