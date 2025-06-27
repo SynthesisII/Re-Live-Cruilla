@@ -59,6 +59,10 @@ base_pipe = AutoPipelineForImage2Image.from_pretrained(
     use_safetensors=True
 ).to(device)
 
+base_pipe.enable_attention_slicing()  # Reduce memory by slicing attention computation
+base_pipe.enable_vae_slicing()  # Slice VAE operations to reduce memory
+base_pipe.enable_model_cpu_offload()
+
 # Load your UNet
 state_dict = load_file("AVATAR/Good_prompts.safetensors")
 base_pipe.unet.load_state_dict(state_dict, strict=False)
@@ -71,6 +75,10 @@ refiner_pipe = AutoPipelineForImage2Image.from_pretrained(
     variant="fp16",
     use_safetensors=True
 ).to(device)
+
+refiner_pipe.enable_attention_slicing()  # Reduce memory by slicing attention computation
+refiner_pipe.enable_vae_slicing()  # Slice VAE operations to reduce memory
+refiner_pipe.enable_model_cpu_offload()
 
 # --- PROCESS IMAGE ---
 input_image = load_image(input_image_path).convert("RGB")
