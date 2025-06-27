@@ -1,0 +1,17 @@
+numpy>=1.23,<2.0
+loguru
+gradio==5.33.1
+pandas>=1.5
+scikit-learn>=1.2
+scipy>=1.9
+Pillow>=9.0
+matplotlib>=3.6
+tqdm
+rembg==2.0.66
+tf_keras==2.19.0
+deepface==0.0.93
+torch==2.7.0
+torcheval==0.0.7
+torchvision==0.22.0
+diffusers
+transformers
