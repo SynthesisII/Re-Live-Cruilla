@@ -28,7 +28,7 @@ class State(Enum):
 
 
 # Global app state
-state: State = State.results
+state: State = State.home
 user_image: Image.Image | None = None
 result_qr_image: Image.Image | None = None
 user_vector: np.ndarray | None = None
@@ -229,8 +229,8 @@ footer {{
     background-repeat: no-repeat;
     background-color: transparent;
     position: fixed;
-    bottom: 3vh;
-    left: 35%;
+    top: 4vh;
+    right: 4vw;
     z-index: 100;
     height: 6%;
     width: 10%;
@@ -242,22 +242,22 @@ footer {{
 
 #avatar_image img {{
     position: fixed;
-    height: 29vh;
-    left: -27vw;
+    height: 55vh;
+    left: -31vw;
     z-index: 10;
     top: 50%;
-    transform: translateY(50%);
+    transform: translateY(-50%);
     pointer-events: none;
     visibility: visible;
 }}
 
 #pet_image img {{
     position: fixed;
-    height: 29vh;
-    right: -27vw;
+    height: 55vh;
+    right: -31vw;
     z-index: 10;
     top: 50%;
-    transform: translateY(50%);
+    transform: translateY(-50%);
     pointer-events: none;
     visibility: visible;
 }}
@@ -406,39 +406,17 @@ def set_pet_image(image: Image.Image | None):
     pet_image = image
     
 
-def get_user_image() -> Image.Image:
-    global user_image
-    if user_image is not None:
-        return user_image.copy()
-    return None
-
-
-def set_result_image(image: Image.Image | None):
-    global result_image
-    logger.debug(f"Set result image: {image}")
-    result_image = image
-
-
 def set_user_vector(vector: np.ndarray | None):
     global user_vector
     logger.debug(f"Set user vector: {vector}")
     user_vector = vector
 
 
-def get_result_image():
-    return result_image
-
-
-def reset_state():
-    set_user_image(None)
-    set_result_image(None)
-    set_state(State.home)
-
-
 def generate():
     logger.info("Generating pet image")
     pet_image = pet_generator.generate_pet_image(user_vector)
     set_pet_image(pet_image)
+
     
     logger.info("Generating avatar image")
     logger.warning("TODO")
@@ -447,29 +425,35 @@ def generate():
     set_state(State.results)
 
 
-def on_gr_image_photo(gr_image_photo):
+def on_image_photo(gr_image_photo):
     set_user_image(gr_image_photo)
     if gr_image_photo is not None:
         set_state(State.generating)
         generate()
+    return pet_image
 
 
 def on_timer_update_state():
     gr_col_home = gr.Column(visible=False)
     gr_col_take_photo = gr.Column(visible=False)
     gr_col_generating = gr.Column(visible=False)
+    gr_col_result = gr.Column(visible=False)
     gr_html_generating = gr.HTML(html_generating)
+    gr_webcam_qr = webcam_qr(scan_qr_enabled=False)
 
     if state is State.home:
         gr_col_home = gr.Column(visible=True)
+        gr_webcam_qr = webcam_qr(scan_qr_enabled=True)
     elif state is State.take_photo:
         gr_col_take_photo = gr.Column(visible=True)
     elif state is State.generating:
         gr_col_generating = gr.Column(visible=True)
         gr_html_generating = gr.HTML(html_generating + html_generating_video)
+    elif state is State.results:
+        gr_col_result = gr.Column(visible=True)
 
-    return (gr_col_home, gr_col_take_photo, gr_col_generating,
-            gr_html_generating)
+    return (gr_col_home, gr_col_take_photo, gr_col_generating, gr_col_result,
+            gr_html_generating, gr_webcam_qr)
 
 
 def on_demo_load():
@@ -492,7 +476,6 @@ def on_webcam_qr(gr_webcam_qr):
         logger.info(f"Detected QR: {gr_webcam_qr}")
         try:
             user_vector =parse_qr(gr_webcam_qr)
-            print(user_vector, user_vector.shape, user_vector.dtype)
             set_user_vector(user_vector)
             set_state(State.take_photo)
             return webcam_qr(scan_qr_enabled=False)
@@ -500,6 +483,14 @@ def on_webcam_qr(gr_webcam_qr):
             logger.exception("Error parsing the QR data")
             raise gr.Error(labels.error_qr_data)
     return webcam_qr()
+
+
+def on_button_restart():
+    logger.info("Resetting state")
+    set_user_image(None)
+    set_pet_image(None)
+    set_user_vector(None)
+    set_state(State.home)
 
 
 with gr.Blocks(js=main_js, css=main_css) as demo:
@@ -544,8 +535,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
     with gr.Column(visible=state is State.results) as gr_col_result:
         gr.HTML(html_results)
         gr_image_avatar = gr.Image(
-            # None,
-            "res/favicon.png",
+            None,
             show_download_button=False,
             show_share_button=False,
             show_fullscreen_button=False,
@@ -554,8 +544,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
             elem_classes="static_image",
         )
         gr_image_pet = gr.Image(
-            # None,
-            "res/favicon.png",
+            None,
             show_download_button=False,
             show_share_button=False,
             show_fullscreen_button=False,
@@ -564,8 +553,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
             elem_classes="static_image"
         )
         gr_image_result_qr = gr.Image(
-            # None,
-            "res/favicon.png",
+            None,
             show_download_button=False,
             show_share_button=False,
             show_fullscreen_button=False,
@@ -573,11 +561,10 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
             elem_id="qr_result_image",
             elem_classes="static_image",
         )
-        # gr_button_result_restart = gr.Button(
-        #     "",
-        #     elem_id="button_restart",
-        #     interactive=False,
-        # )
+        gr_button_result_restart = gr.Button(
+            "",
+            elem_id="button_restart",
+        )
 
     demo.load(
         on_demo_load,
@@ -587,7 +574,8 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
     gr_timer_update_state.tick(
         on_timer_update_state,
         None,
-        [gr_col_home, gr_col_take_photo, gr_col_generating, gr_html_generating]
+        [gr_col_home, gr_col_take_photo, gr_col_generating, gr_col_result,
+         gr_html_generating, gr_webcam_qr]
     )
     gr_webcam_qr.change(
         on_webcam_qr,
@@ -595,17 +583,10 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
         gr_webcam_qr,
         show_progress=False,
     )
-
-    # gr_button_gen.click(on_button_gen, show_progress=False)
-    # gr_button_result_restart.click(
-    #     on_button_result_restart,
-    #     None,
-    #     [gr_col_home, gr_col_result, gr_html_home, gr_image_gen_cam,
-    #      gr_html_radio_dj, gr_html_radio_guitar, gr_html_radio_singer,
-    #      gr_button_gen_cam, gr_button_gen_clear, gr_image_result,
-    #      gr_image_result_qr],
-    #     show_progress=False,
-    # )
+    gr_button_result_restart.click(
+        on_button_restart,
+        show_progress=False,
+    )
     # gr_button_gen_dj.click(
     #     partial(on_set_role, role=config.role_dj),
     #     None,
@@ -625,14 +606,11 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
         lambda: None,
         js=take_photo_js,
     )
-    # gr_button_clear_photo.click(
-    #     lambda: None,
-    #     js=clear_photo_js,
-    # )
     gr_image_photo.input(
-        on_gr_image_photo,
+        on_image_photo,
         gr_image_photo,
-        None, # [gr_button_take_photo, gr_button_clear_photo],
+        [gr_image_pet],
+        # None, # [gr_button_take_photo, gr_button_clear_photo],
         show_progress=False,
     )
 
