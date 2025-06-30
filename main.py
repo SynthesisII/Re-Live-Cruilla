@@ -5,6 +5,7 @@ from typing import Literal
 from enum import Enum, auto
 from functools import partial
 from pathlib import Path
+import json
 
 import gradio as gr
 import numpy as np
@@ -59,6 +60,7 @@ favicon_path = str(root_path / "images/favicon.png").replace('\\', '/')
 home_background_path = str(root_path / "images/home_background.png").replace('\\', '/')
 photo_background_path = str(root_path / "images/photo_background.png").replace('\\', '/')
 results_background_path = str(root_path / "images/results_background.png").replace('\\', '/')
+generating_background_path = str(root_path / "images/generating_background.png").replace('\\', '/')
 camera_button_path = str(root_path / "images/camera.png").replace('\\', '/')
 clear_camera_path = str(root_path / "images/clear_image.png").replace('\\', '/')
 end_button_path = str(root_path / "images/end.png").replace('\\', '/')
@@ -107,6 +109,20 @@ footer {{
     pointer-events: none;
 }}
 
+#generating_background {{
+    background-image:url("/gradio_api/file={generating_background_path}");
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: top left;
+    background-repeat: no-repeat;
+    z-index: 0;
+    pointer-events: none;
+}}
+
 #results_background {{
     background-image:url("/gradio_api/file={results_background_path}");
     position: fixed;
@@ -139,14 +155,14 @@ footer {{
     pointer-events: none;
 }}
 #webcam_photo video {{
-    width: 57vw;
+    width: 62vw;
     position: fixed;
     bottom: -14vh;
     right: 50%;
     transform: translateX(50%);
 }}
 #webcam_photo img {{
-    width: 57vw;
+    width: 62vw;
     position: fixed;
     bottom: -14vh;
     right: 50%;
@@ -175,9 +191,9 @@ footer {{
     background-repeat: no-repeat;
     background-color: transparent;
     position: fixed;
-    bottom: 5vh;
+    bottom: 8vh;
     z-index: 100;
-    height: 15%;
+    height: 14%;
     width: 11%;
     right: 50%;
     transform: translateX(50%);
@@ -390,6 +406,9 @@ html_take_photo = """
 <div id="take_photo_background"></div>
 """
 
+html_generating = """
+<div id="generating_background"></div>
+"""
 
 html_results = """
 <div id="results_background"></div>
@@ -568,21 +587,26 @@ def reset_state():
 
 def on_gr_image_photo(gr_image_photo):
     set_user_image(gr_image_photo)
-    gr_button_take_photo = gr.Button(visible=gr_image_photo is None)
-    gr_button_clear_photo = gr.Button(visible=gr_image_photo is not None)
-    return gr_button_take_photo, gr_button_clear_photo
+    if gr_image_photo is not None:
+        set_state(State.generating)
+    # gr_button_take_photo = gr.Button(visible=gr_image_photo is None)
+    # gr_button_clear_photo = gr.Button(visible=gr_image_photo is not None)
+    # return gr_button_take_photo, gr_button_clear_photo
 
 
 def on_timer_update_state():
     gr_col_home = gr.Column(visible=False)
     gr_col_take_photo = gr.Column(visible=False)
+    gr_col_generating = gr.Column(visible=False)
 
     if state is State.home:
         gr_col_home = gr.Column(visible=True)
     elif state is State.take_photo:
         gr_col_take_photo = gr.Column(visible=True)
+    elif state is State.generating:
+        gr_col_generating = gr.Column(visible=True)
 
-    return (gr_col_home, gr_col_take_photo)
+    return (gr_col_home, gr_col_take_photo, gr_col_generating)
 
 
 # def on_progress_step(current, total, preview_image):
@@ -613,18 +637,18 @@ def on_demo_load():
 
 
 def on_webcam_qr(gr_webcam_qr):
-    logger.info(f"Detected QR: {gr_webcam_qr}")
-
-    # TODO: Parse QR data and check if it is valid
-    if False:
-        gr.Warning(labels.error_qr_data)
-        return webcam_qr(scan_qr_enabled=True)
-    
-    set_user_vector(np.arange(8))
-    set_state(State.take_photo)
-    return webcam_qr(scan_qr_enabled=False)
-
-
+    if gr_webcam_qr:
+        logger.info(f"Detected QR: {gr_webcam_qr}")
+        try:
+            data = json.loads(gr_webcam_qr)
+            vector = np.array(data["vector"])
+            set_user_vector(vector)
+            set_state(State.take_photo)
+            return webcam_qr(scan_qr_enabled=False)
+        except Exception as e:
+            logger.exception("Error parsing the QR data")
+            raise gr.Error(labels.error_qr_data)
+    return webcam_qr()
 
 
 with gr.Blocks(js=main_js, css=main_css) as demo:
@@ -662,11 +686,14 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
             "",
             elem_id="camera_button"
         )
-        gr_button_clear_photo = gr.Button(
-            "",
-            elem_id="clear_button",
-            visible=False
-        )
+        # gr_button_clear_photo = gr.Button(
+        #     "",
+        #     elem_id="clear_button",
+        #     visible=False
+        # )
+
+    with gr.Column(visible=state is State.generating) as gr_col_generating:
+        gr.HTML(html_generating)
 
     with gr.Column(visible=state is State.results) as gr_col_result:
         gr.HTML(html_results)
@@ -707,7 +734,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
     gr_timer_update_state.tick(
         on_timer_update_state,
         None,
-        [gr_col_home, gr_col_take_photo]
+        [gr_col_home, gr_col_take_photo, gr_col_generating]
     )
     gr_webcam_qr.change(
         on_webcam_qr,
@@ -745,14 +772,14 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
         lambda: None,
         js=take_photo_js,
     )
-    gr_button_clear_photo.click(
-        lambda: None,
-        js=clear_photo_js,
-    )
+    # gr_button_clear_photo.click(
+    #     lambda: None,
+    #     js=clear_photo_js,
+    # )
     gr_image_photo.input(
         on_gr_image_photo,
         gr_image_photo,
-        [gr_button_take_photo, gr_button_clear_photo],
+        None, # [gr_button_take_photo, gr_button_clear_photo],
         show_progress=False,
     )
 
