@@ -14,6 +14,7 @@ from loguru import logger
 from PIL import Image
 
 from gradio_webcam_qr import webcam_qr
+from PET.PetGenCruilla import PetGenCruilla
 
 import config
 import labels
@@ -27,10 +28,11 @@ class State(Enum):
 
 
 # Global app state
-state: State = State.home
+state: State = State.results
 user_image: Image.Image | None = None
 result_qr_image: Image.Image | None = None
 user_vector: np.ndarray | None = None
+pet_image: Image.Image | None = None
 
 
 # Parse arguments
@@ -51,19 +53,21 @@ if __name__ == "__main__":
 
 # Load models
 logger.info("Loading models")
+pet_generator = PetGenCruilla()
 logger.warning("TODO")
 
 
 # Assets paths
 root_path = Path(__file__).parent
-favicon_path = str(root_path / "images/favicon.png").replace('\\', '/')
-home_background_path = str(root_path / "images/home_background.png").replace('\\', '/')
-photo_background_path = str(root_path / "images/photo_background.png").replace('\\', '/')
-results_background_path = str(root_path / "images/results_background.png").replace('\\', '/')
-generating_background_path = str(root_path / "images/generating_background.png").replace('\\', '/')
-camera_button_path = str(root_path / "images/camera.png").replace('\\', '/')
-clear_camera_path = str(root_path / "images/clear_image.png").replace('\\', '/')
-end_button_path = str(root_path / "images/end.png").replace('\\', '/')
+favicon_path = str(root_path / "res/favicon.png").replace('\\', '/')
+home_background_path = str(root_path / "res/home_background.png").replace('\\', '/')
+photo_background_path = str(root_path / "res/photo_background.png").replace('\\', '/')
+results_background_path = str(root_path / "res/results_background.png").replace('\\', '/')
+generating_background_path = str(root_path / "res/generating_background.png").replace('\\', '/')
+camera_button_path = str(root_path / "res/camera.png").replace('\\', '/')
+clear_camera_path = str(root_path / "res/clear_image.png").replace('\\', '/')
+end_button_path = str(root_path / "res/end.png").replace('\\', '/')
+generating_video_path = str(root_path / "res/generating_video.mp4").replace('\\', '/')
 
 
 # Page CSS
@@ -149,10 +153,12 @@ footer {{
     visibility: hidden;
 }}
 
-
 .webcam {{
     border-width: 0px !important;
     pointer-events: none;
+}}
+.webcam [title="grant webcam access"] {{
+    display: none !important;
 }}
 #webcam_photo video {{
     width: 62vw;
@@ -167,9 +173,6 @@ footer {{
     bottom: -14vh;
     right: 50%;
     transform: translateX(50%);
-}}
-.webcam [title="grant webcam access"] {{
-    display: none !important;
 }}
 
 #qr_survey img {{
@@ -226,6 +229,14 @@ footer {{
     font-family: Arial, sans-serif;
     display: none;
     z-index: 1000;
+}}
+
+#generating_video {{
+    position: fixed;
+    width: 59vw;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 60%;
 }}
 
 #button_restart {{
@@ -406,9 +417,16 @@ html_take_photo = """
 <div id="take_photo_background"></div>
 """
 
+
 html_generating = """
 <div id="generating_background"></div>
 """
+
+
+html_generating_video = f"""
+<video id="generating_video" src="/gradio_api/file={generating_video_path}" autoplay loop muted playsinline></video>
+"""
+
 
 html_results = """
 <div id="results_background"></div>
@@ -502,6 +520,12 @@ def set_user_image(image: Image.Image | None):
     user_image = image
 
 
+def set_pet_image(image: Image.Image | None):
+    global pet_image
+    logger.debug(f"Set pet image: {image}")
+    pet_image = image
+    
+
 def get_user_image() -> Image.Image:
     global user_image
     if user_image is not None:
@@ -529,6 +553,18 @@ def reset_state():
     set_user_image(None)
     set_result_image(None)
     set_state(State.home)
+
+
+def generate():
+    logger.info("Generating pet image")
+    pet_image = pet_generator.generate_pet_image(user_vector)
+    set_pet_image(pet_image)
+    
+    logger.info("Generating avatar image")
+    logger.warning("TODO")
+    
+    logger.success("Generation done")
+    set_state(State.results)
 
 
 # def on_button_gen():
@@ -589,6 +625,7 @@ def on_gr_image_photo(gr_image_photo):
     set_user_image(gr_image_photo)
     if gr_image_photo is not None:
         set_state(State.generating)
+        generate()
     # gr_button_take_photo = gr.Button(visible=gr_image_photo is None)
     # gr_button_clear_photo = gr.Button(visible=gr_image_photo is not None)
     # return gr_button_take_photo, gr_button_clear_photo
@@ -598,6 +635,7 @@ def on_timer_update_state():
     gr_col_home = gr.Column(visible=False)
     gr_col_take_photo = gr.Column(visible=False)
     gr_col_generating = gr.Column(visible=False)
+    gr_html_generating = gr.HTML(html_generating)
 
     if state is State.home:
         gr_col_home = gr.Column(visible=True)
@@ -605,8 +643,10 @@ def on_timer_update_state():
         gr_col_take_photo = gr.Column(visible=True)
     elif state is State.generating:
         gr_col_generating = gr.Column(visible=True)
+        gr_html_generating = gr.HTML(html_generating + html_generating_video)
 
-    return (gr_col_home, gr_col_take_photo, gr_col_generating)
+    return (gr_col_home, gr_col_take_photo, gr_col_generating,
+            gr_html_generating)
 
 
 # def on_progress_step(current, total, preview_image):
@@ -622,27 +662,26 @@ def on_timer_update_state():
 
 def on_demo_load():
     # Create a QR image with the survey link
-    qr = qrcode.QRCode(
-        version=None,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=10,
-        border=1,
-    )
-    qr.add_data(config.survey_link)
-    qr.make(fit=True)
-    qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
-    gr_image_survey_qr = gr.Image(qr_img)
-
+    gr_image_survey_qr = qrcode.make(config.survey_link).get_image()
     return gr_image_survey_qr
+
+
+def parse_qr(qr_data: str) -> np.ndarray:
+    data = json.loads(qr_data)
+    vector = np.array(data["vector"])
+    vector = vector.astype(np.float64)
+    # TODO: Remove this!!
+    vector = vector + np.random.normal(loc=0.0, scale=0.0001, size=vector.shape)
+    return vector
 
 
 def on_webcam_qr(gr_webcam_qr):
     if gr_webcam_qr:
         logger.info(f"Detected QR: {gr_webcam_qr}")
         try:
-            data = json.loads(gr_webcam_qr)
-            vector = np.array(data["vector"])
-            set_user_vector(vector)
+            user_vector =parse_qr(gr_webcam_qr)
+            print(user_vector, user_vector.shape, user_vector.dtype)
+            set_user_vector(user_vector)
             set_state(State.take_photo)
             return webcam_qr(scan_qr_enabled=False)
         except Exception as e:
@@ -693,7 +732,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
         # )
 
     with gr.Column(visible=state is State.generating) as gr_col_generating:
-        gr.HTML(html_generating)
+        gr_html_generating = gr.HTML(html_generating)
 
     with gr.Column(visible=state is State.results) as gr_col_result:
         gr.HTML(html_results)
@@ -734,7 +773,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
     gr_timer_update_state.tick(
         on_timer_update_state,
         None,
-        [gr_col_home, gr_col_take_photo, gr_col_generating]
+        [gr_col_home, gr_col_take_photo, gr_col_generating, gr_html_generating]
     )
     gr_webcam_qr.change(
         on_webcam_qr,
