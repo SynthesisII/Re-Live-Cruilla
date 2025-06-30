@@ -153,11 +153,11 @@ footer {{
     visibility: hidden;
 }}
 
-.webcam {{
+#webcam_photo {{
     border-width: 0px !important;
     pointer-events: none;
 }}
-.webcam [title="grant webcam access"] {{
+#webcam_photo [title="grant webcam access"] {{
     display: none !important;
 }}
 #webcam_photo video {{
@@ -183,9 +183,6 @@ footer {{
     pointer-events: none;
     height: 25vh;
 }}
-#qr_survey {{
-    visibility: hidden;
-}}
 
 #camera_button {{
     background-image: url("/gradio_api/file={camera_button_path}");
@@ -197,20 +194,6 @@ footer {{
     bottom: 8vh;
     z-index: 100;
     height: 14%;
-    width: 11%;
-    right: 50%;
-    transform: translateX(50%);
-}}
-#clear_button {{
-    background-image: url("/gradio_api/file={clear_camera_path}");
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: transparent;
-    position: fixed;
-    bottom: 5vh;
-    z-index: 100;
-    height: 15%;
     width: 11%;
     right: 50%;
     transform: translateX(50%);
@@ -253,58 +236,44 @@ footer {{
     width: 10%;
 }}
 
-#output_image {{
+.static_image {{
     visibility: hidden;
 }}
-#output_image img {{
-    position: fixed;
-    height: 90vh;
-    right: -23vw;
-    z-index: 1;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    visibility: visible;
-}}
 
-#qr_image img {{
+#avatar_image img {{
     position: fixed;
     height: 29vh;
     left: -27vw;
     z-index: 10;
     top: 50%;
-    transform: translateY(41%);
+    transform: translateY(50%);
     pointer-events: none;
     visibility: visible;
 }}
-#qr_image {{
-    visibility: hidden;
-}}
 
-#loading_container_qr {{
+#pet_image img {{
     position: fixed;
-    z-index: 100;
-    bottom: 22%;
-    left: 21vw;
-}}
-#loading_container_results {{
-    position: fixed;
-    z-index: 100;
-    right: 45vh;
+    height: 29vh;
+    right: -27vw;
+    z-index: 10;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(50%);
+    pointer-events: none;
+    visibility: visible;
 }}
 
-#blur-results {{
+#qr_result_image img {{
     position: fixed;
-    z-index: 2;
-    top: 0%;
-    left: 0%;
-    width: 100vw;
-    height: 100vh;
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px); /* for Safari */
+    height: 29vh;
+    left: 50%;
+    z-index: 10;
+    top: 50%;
+    transform: translateY(50%);
+    transform: translateX(50%);
+    pointer-events: none;
+    visibility: visible;
 }}
+
 """
 
 
@@ -391,23 +360,6 @@ take_photo_js = f"""
 """
 
 
-clear_photo_js = """
-() => {
-    const imageInputDiv = document.getElementById("webcam_photo");
-    if (imageInputDiv) {
-        const clearButton = imageInputDiv.querySelector('[aria-label="Remove Image"]');
-        if (clearButton) {
-            clearButton.click();
-        } else {
-            console.warn('Clear button not found inside #webcam');
-        }
-    } else {
-        console.warn('Div with ID "webcam" not found');
-    }
-}
-"""
-
-
 html_home = """
 <div id="home_background"></div>
 """
@@ -434,78 +386,6 @@ html_results = """
 
 
 html_count_down = """<div id="countdown" class="countdown-container"></div>"""
-
-
-html_blur_results = """
-<div id="blur-results"></div>
-"""
-
-
-# html_loading = """
-# <div class="loading_container" id="loading_container_{id}">
-#   <div class="dot"></div>
-#   <div class="dot"></div>
-#   <div class="dot"></div>
-#   <div class="dot"></div>
-# </div>
-
-# <style>
-#     .loading_container {{
-#         --uib-size: 100px;
-#         --uib-color: #eedc00;
-#         --uib-speed: 1s;
-#         --uib-dot-size: calc(var(--uib-size) * 0.18);
-#         display: flex;
-#         align-items: flex-end;
-#         justify-content: space-between;
-#         height: calc(var(--uib-size) * 0.5);
-#         width: var(--uib-size);
-#     }}
-
-#     .dot {{
-#         flex-shrink: 0;
-#         width: calc(var(--uib-size) * 0.17);
-#         height: calc(var(--uib-size) * 0.17);
-#         border-radius: 50%;
-#         background-color: var(--uib-color);
-#         transition: background-color 0.3s ease;
-#     }}
-
-#     .dot:nth-child(1) {{
-#         animation: jump var(--uib-speed) ease-in-out calc(var(--uib-speed) * -0.45)
-#         infinite;
-#     }}
-
-#     .dot:nth-child(2) {{
-#         animation: jump var(--uib-speed) ease-in-out calc(var(--uib-speed) * -0.3)
-#         infinite;
-#     }}
-
-#     .dot:nth-child(3) {{
-#         animation: jump var(--uib-speed) ease-in-out calc(var(--uib-speed) * -0.15)
-#         infinite;
-#     }}
-
-#     .dot:nth-child(4) {{
-#         animation: jump var(--uib-speed) ease-in-out infinite;
-#     }}
-
-#     @keyframes jump {{
-#         0%,
-#         100% {{
-#         transform: translateY(0px);
-#         }}
-
-#         50% {{
-#         transform: translateY(-200%);
-#         }}
-#     }}
-# </style>
-# """
-
-
-# def get_html_loading(position: Literal["qr", "results"]):
-#     return html_loading.format(id=position)
 
 
 def set_state(new_state: State):
@@ -567,68 +447,11 @@ def generate():
     set_state(State.results)
 
 
-# def on_button_gen():
-#     user_image = get_user_image()
-
-#     if user_image is None:
-#         raise gr.Error(labels.error_no_user_image)
-
-#     logger.info("Starting generation...")
-#     set_state(State.generating)
-
-#     # Save the user image in a temporal file
-#     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_img:
-#         # Rotate the image
-#         if config.cam_rotation == 90:
-#             user_image = user_image.transpose(Image.ROTATE_270)
-#         elif config.cam_rotation == -90:
-#             user_image = user_image.transpose(Image.ROTATE_90)
-#         elif config.cam_rotation != 0:
-#             logger.warning("Consider using one of the following camera "
-#                            "rotations for better results: [0, 90, -90]")
-#             user_image = user_image.rotate(-config.cam_rotation, expand=True)
-        
-#         # Save the image
-#         user_image.save(tmp_img, format="PNG")
-#         tmp_img.flush()  # Ensure it's written to disk
-
-#         # Stat generation
-#         image_result = cruilla_generator.generate(
-#             input_image_path=tmp_img.name,
-#             role=selected_role,
-#             steps=config.generation_steps,
-#         )
-#         set_result_image(image_result)
-#         # TODO: Upload image and set QR image
-    
-#     set_state(State.results)
-
-
-# def on_button_result_restart():
-#     reset_state()
-#     gr_col_home = gr.Column(visible=True)
-#     gr_col_result = gr.Column(visible=False)
-#     gr_html_home = gr.HTML(get_html_home())
-#     gr_image_gen_cam = None
-#     gr_html_radio_dj, gr_html_radio_guitar, gr_html_radio_singer = on_set_role()
-#     gr_button_gen_cam = gr.Button(visible=True)
-#     gr_button_gen_clear = gr.Button(visible=False)
-#     gr_image_result = gr.Image(None)
-#     gr_image_result_qr = gr.Image(None)
-#     return (gr_col_home, gr_col_result, gr_html_home, gr_image_gen_cam,
-#             gr_html_radio_dj, gr_html_radio_guitar, gr_html_radio_singer,
-#             gr_button_gen_cam, gr_button_gen_clear, gr_image_result,
-#             gr_image_result_qr)
-
-
 def on_gr_image_photo(gr_image_photo):
     set_user_image(gr_image_photo)
     if gr_image_photo is not None:
         set_state(State.generating)
         generate()
-    # gr_button_take_photo = gr.Button(visible=gr_image_photo is None)
-    # gr_button_clear_photo = gr.Button(visible=gr_image_photo is not None)
-    # return gr_button_take_photo, gr_button_clear_photo
 
 
 def on_timer_update_state():
@@ -647,17 +470,6 @@ def on_timer_update_state():
 
     return (gr_col_home, gr_col_take_photo, gr_col_generating,
             gr_html_generating)
-
-
-# def on_progress_step(current, total, preview_image):
-#     logger.info(f"Generation step: {current}/{total}")
-#     if preview_image:
-#         preview_image = preview_image[1]
-#         resized_image = preview_image.resize(
-#             (cruilla_generator.latent_width, cruilla_generator.latent_height),
-#             resample=Image.NEAREST
-#         )
-#         set_result_image(resized_image)
 
 
 def on_demo_load():
@@ -703,7 +515,8 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
             show_share_button=False,
             show_fullscreen_button=False,
             show_label=False,
-            elem_id="qr_survey"
+            elem_id="qr_survey",
+            elem_classes="static_image",
         )
    
     with gr.Column(visible=state is State.take_photo) as gr_col_take_photo:
@@ -716,7 +529,6 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
             show_label=False,
             sources=["webcam"],
             elem_id="webcam_photo",
-            elem_classes="webcam",
             interactive=True,
             type="pil",
             webcam_options=gr.WebcamOptions(mirror=False),
@@ -725,11 +537,6 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
             "",
             elem_id="camera_button"
         )
-        # gr_button_clear_photo = gr.Button(
-        #     "",
-        #     elem_id="clear_button",
-        #     visible=False
-        # )
 
     with gr.Column(visible=state is State.generating) as gr_col_generating:
         gr_html_generating = gr.HTML(html_generating)
@@ -737,33 +544,40 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
     with gr.Column(visible=state is State.results) as gr_col_result:
         gr.HTML(html_results)
         gr_image_avatar = gr.Image(
-            None,
+            # None,
+            "res/favicon.png",
             show_download_button=False,
             show_share_button=False,
             show_fullscreen_button=False,
             show_label=False,
             elem_id="avatar_image",
+            elem_classes="static_image",
         )
         gr_image_pet = gr.Image(
-            None,
+            # None,
+            "res/favicon.png",
             show_download_button=False,
             show_share_button=False,
             show_fullscreen_button=False,
             show_label=False,
             elem_id="pet_image",
+            elem_classes="static_image"
         )
         gr_image_result_qr = gr.Image(
+            # None,
+            "res/favicon.png",
             show_download_button=False,
             show_share_button=False,
             show_fullscreen_button=False,
             show_label=False,
-            elem_id="qr_result_image"
+            elem_id="qr_result_image",
+            elem_classes="static_image",
         )
-        gr_button_result_restart = gr.Button(
-            "",
-            elem_id="button_restart",
-            interactive=False,
-        )
+        # gr_button_result_restart = gr.Button(
+        #     "",
+        #     elem_id="button_restart",
+        #     interactive=False,
+        # )
 
     demo.load(
         on_demo_load,
