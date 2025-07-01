@@ -17,7 +17,7 @@ seed = 42
 
 base_strength = 0.7
 base_guidance_scale = 8.5
-base_num_inference_steps = 30
+base_num_inference_steps = 20
 
 refiner_strength = 0.3
-refiner_num_inference_steps = 30
+refiner_num_inference_steps = 20

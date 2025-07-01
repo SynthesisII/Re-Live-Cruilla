@@ -16,13 +16,12 @@ from .utils import (center_crop_to_square, generate_weighted_prompt,
 class AvatarGenCruilla:
 
     negative_prompt = """
-        deformed, blurry, bad anatomy, disfigured,
-        poorly drawn face, mutation, extra limbs,
-        ugly, duplicate, morbid, mutilated,
-        cluttered background, busy background, detailed background,
-        colorful background, textured background, patterned background,
-        shadows, gradients, scenery, objects, furniture, environment,
-        landscape, people in background, background elements, depth of field,
+        deformed, blurry, bad anatomy, disfigured, poorly drawn face, mutation,
+        extra limbs, ugly, duplicate, morbid, mutilated, cluttered background,
+        busy background, detailed background, colorful background, text,
+        watermark, textured background, patterned background, shadows,
+        gradients, scenery, objects, furniture, environment, landscape,
+        people in background, background elements, depth of field,
         photo background, realistic background, 3D background, noise, artifacts
     """
 
@@ -165,13 +164,3 @@ class AvatarGenCruilla:
             generator=torch.Generator(self.device).manual_seed(config.seed)
         )
         return remove_background(refined_result.images[0])
-
-
-if __name__ == "__main__":
-    import cv2
-    image = cv2.imread("/home/egracia/Pictures/People/Coen.jpg")
-    user_vector = np.array([0.5, 0.9, 0.11, 0.1, 0.3, 0.1, 0.1, 0.26, 0.23, 0.8, 0.7, 0.23, 0.21, 0.02, 0.23, 0.52, 0.34, 0.2])
-    avatar_generator = AvatarGenCruilla()
-    # print(avatar_generator._analyze_face_image(image, user_vector))
-    image = avatar_generator.generate_avatar(image, user_vector)
-    image.save("avatar.png")

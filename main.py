@@ -258,7 +258,7 @@ footer {{
     right: -31vw;
     z-index: 10;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-45%);
     pointer-events: none;
     visibility: visible;
 }}
