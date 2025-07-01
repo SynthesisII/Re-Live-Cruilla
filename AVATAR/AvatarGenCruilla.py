@@ -7,10 +7,10 @@ from diffusers import AutoPipelineForImage2Image
 from loguru import logger
 from PIL import Image
 from safetensors.torch import load_file
-from utils import (center_crop_to_square, generate_weighted_prompt,
-                   remove_background)
 
-import config
+from . import config
+from .utils import (center_crop_to_square, generate_weighted_prompt,
+                    remove_background)
 
 
 class AvatarGenCruilla:
@@ -120,7 +120,7 @@ class AvatarGenCruilla:
         self,
         image: np.ndarray,
         user_vector: np.ndarray
-    ) -> np.ndarray:
+    ) -> Image.Image:
         """Generate an avatar image.
 
         Args:
@@ -128,7 +128,7 @@ class AvatarGenCruilla:
             user_vector (np.ndarray): The user genre vector.
 
         Returns:
-            np.ndarray: The generated avatar image.
+            Image.Image: The generated avatar image.
         """
         analysis_result = self._analyze_face_image(image)
         analysis_result[0]["top_genres"] = self._get_top_genres(user_vector)
@@ -136,7 +136,7 @@ class AvatarGenCruilla:
         prompt = prompts[0]
         logger.debug(f"Using prompt: {prompt}")
 
-        rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        rgb_img = image[:,:,::-1]
         pil_img = Image.fromarray(rgb_img)
         input_image = center_crop_to_square(pil_img)
         input_image = input_image.resize(config.input_image_size)
@@ -165,8 +165,6 @@ class AvatarGenCruilla:
             generator=torch.Generator(self.device).manual_seed(config.seed)
         )
         return remove_background(refined_result.images[0])
-
-
 
 
 if __name__ == "__main__":

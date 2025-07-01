@@ -17,6 +17,7 @@ from PIL import Image
 import config
 import labels
 from PET.PetGenCruilla import PetGenCruilla
+from AVATAR.AvatarGenCruilla import AvatarGenCruilla
 
 
 class State(Enum):
@@ -32,6 +33,7 @@ user_image: Image.Image | None = None
 result_qr_image: Image.Image | None = None
 user_vector: np.ndarray | None = None
 pet_image: Image.Image | None = None
+avatar_image: Image.Image | None = None
 
 
 # Parse arguments
@@ -53,7 +55,7 @@ if __name__ == "__main__":
 # Load models
 logger.info("Loading models")
 pet_generator = PetGenCruilla()
-logger.warning("TODO")
+avatar_generator = AvatarGenCruilla()
 
 
 # Assets paths
@@ -403,7 +405,13 @@ def set_pet_image(image: Image.Image | None):
     global pet_image
     logger.debug(f"Set pet image: {image}")
     pet_image = image
-    
+
+
+def set_avatar_image(image: Image.Image | None):
+    global avatar_image
+    logger.debug(f"Set avatar image: {image}")
+    avatar_image = image
+
 
 def set_user_vector(vector: np.ndarray | None):
     global user_vector
@@ -412,15 +420,20 @@ def set_user_vector(vector: np.ndarray | None):
 
 
 def generate():
-    logger.info("Generating pet image")
-    pet_image = pet_generator.generate_pet_image(user_vector)
-    set_pet_image(pet_image)
+    try:
+        logger.info("Generating pet image")
+        pet_image = pet_generator.generate_pet_image(user_vector)
+        set_pet_image(pet_image)
 
-    
-    logger.info("Generating avatar image")
-    logger.warning("TODO")
-    
-    logger.success("Generation done")
+        logger.info("Generating avatar image")
+        user_image_np = np.array(user_image)[:,:,::-1]
+        avatar_image = avatar_generator.generate_avatar(user_image_np, user_vector)
+        set_avatar_image(avatar_image)
+        
+        logger.success("Generation done")
+    except Exception as e:
+        logger.exception("Error generating images")
+        gr.Warning("Error generating images")
     set_state(State.results)
 
 
@@ -429,7 +442,7 @@ def on_image_photo(gr_image_photo):
     if gr_image_photo is not None:
         set_state(State.generating)
         generate()
-    return pet_image
+    return pet_image, avatar_image
 
 
 def on_timer_update_state():
@@ -551,15 +564,6 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
             elem_id="pet_image",
             elem_classes="static_image"
         )
-        gr_image_result_qr = gr.Image(
-            None,
-            show_download_button=False,
-            show_share_button=False,
-            show_fullscreen_button=False,
-            show_label=False,
-            elem_id="qr_result_image",
-            elem_classes="static_image",
-        )
         gr_button_result_restart = gr.Button(
             "",
             elem_id="button_restart",
@@ -586,21 +590,6 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
         on_button_restart,
         show_progress=False,
     )
-    # gr_button_gen_dj.click(
-    #     partial(on_set_role, role=config.role_dj),
-    #     None,
-    #     [gr_html_radio_dj, gr_html_radio_guitar, gr_html_radio_singer]
-    # )
-    # gr_button_gen_guitar.click(
-    #     partial(on_set_role, role=config.role_guitar),
-    #     None,
-    #     [gr_html_radio_dj, gr_html_radio_guitar, gr_html_radio_singer]
-    # )
-    # gr_button_gen_singer.click(
-    #     partial(on_set_role, role=config.role_singer),
-    #     None,
-    #     [gr_html_radio_dj, gr_html_radio_guitar, gr_html_radio_singer]
-    # )
     gr_button_take_photo.click(
         lambda: None,
         js=take_photo_js,
@@ -608,8 +597,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
     gr_image_photo.input(
         on_image_photo,
         gr_image_photo,
-        [gr_image_pet],
-        # None, # [gr_button_take_photo, gr_button_clear_photo],
+        [gr_image_pet, gr_image_avatar],
         show_progress=False,
     )
 

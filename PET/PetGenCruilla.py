@@ -1,11 +1,11 @@
 import os
 from pathlib import Path
 
-import pandas as pd
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from scipy.stats import pearsonr
+import pandas as pd
 from PIL import Image
+from scipy.stats import pearsonr
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 class PetGenCruilla:
