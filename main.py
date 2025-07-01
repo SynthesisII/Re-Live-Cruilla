@@ -247,7 +247,7 @@ footer {{
     left: -31vw;
     z-index: 10;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-45%);
     pointer-events: none;
     visibility: visible;
 }}
@@ -452,6 +452,7 @@ def on_timer_update_state():
     gr_col_result = gr.Column(visible=False)
     gr_html_generating = gr.HTML(html_generating)
     gr_webcam_qr = webcam_qr(scan_qr_enabled=False)
+    gr_button_result_restart = gr.Button(interactive=False)
 
     if state is State.home:
         gr_col_home = gr.Column(visible=True)
@@ -463,9 +464,10 @@ def on_timer_update_state():
         gr_html_generating = gr.HTML(html_generating + html_generating_video)
     elif state is State.results:
         gr_col_result = gr.Column(visible=True)
+        gr_button_result_restart = gr.Button(interactive=True)
 
     return (gr_col_home, gr_col_take_photo, gr_col_generating, gr_col_result,
-            gr_html_generating, gr_webcam_qr)
+            gr_html_generating, gr_webcam_qr, gr_button_result_restart)
 
 
 def on_demo_load():
@@ -503,6 +505,9 @@ def on_button_restart():
     set_pet_image(None)
     set_user_vector(None)
     set_state(State.home)
+    
+    gr_image_photo = gr.Image(None)
+    return gr_image_photo
 
 
 with gr.Blocks(js=main_js, css=main_css) as demo:
@@ -567,6 +572,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
         gr_button_result_restart = gr.Button(
             "",
             elem_id="button_restart",
+            interactive=False,
         )
 
     demo.load(
@@ -578,7 +584,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
         on_timer_update_state,
         None,
         [gr_col_home, gr_col_take_photo, gr_col_generating, gr_col_result,
-         gr_html_generating, gr_webcam_qr]
+         gr_html_generating, gr_webcam_qr, gr_button_result_restart]
     )
     gr_webcam_qr.change(
         on_webcam_qr,
@@ -588,6 +594,8 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
     )
     gr_button_result_restart.click(
         on_button_restart,
+        None,
+        [gr_image_photo],
         show_progress=False,
     )
     gr_button_take_photo.click(
