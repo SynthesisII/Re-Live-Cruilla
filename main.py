@@ -1,23 +1,22 @@
 import argparse
+import json
 import tempfile
 import time
-from typing import Literal
 from enum import Enum, auto
 from functools import partial
 from pathlib import Path
-import json
+from typing import Literal
 
 import gradio as gr
 import numpy as np
 import qrcode
+from gradio_webcam_qr import webcam_qr
 from loguru import logger
 from PIL import Image
 
-from gradio_webcam_qr import webcam_qr
-from PET.PetGenCruilla import PetGenCruilla
-
 import config
 import labels
+from PET.PetGenCruilla import PetGenCruilla
 
 
 class State(Enum):
