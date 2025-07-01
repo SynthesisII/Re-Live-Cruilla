@@ -1,12 +1,13 @@
 from pathlib import Path
 
 root_path = Path(__file__).parent
+
+genres = ['Comedy', 'Art', 'Chill', 'Food', 'Social', 'Rock', 'Pop',
+          'Soul', 'Jazz', 'Electronic', 'Folk', 'Reggae', 'Hip-hop',
+          'Punk', 'Rap', 'Classical', 'Indie', 'Other']
+
 models_path = root_path / "models"
 cache_path = root_path / "cache"
-
-genres = ['Comedy','Art','Chill','Food','Social','Rock','Pop',
-          'Soul','Jazz','Electronic','Folk','Reggae','Hip-hop',
-          'Punk','Rap','Classical','Indie','Other']
 
 base_model_path = "stabilityai/stable-diffusion-xl-base-1.0"
 refiner_model_path = "stabilityai/stable-diffusion-xl-refiner-1.0"

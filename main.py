@@ -16,8 +16,9 @@ from PIL import Image
 
 import config
 import labels
-from PET.PetGenCruilla import PetGenCruilla
 from AVATAR.AvatarGenCruilla import AvatarGenCruilla
+from PET.PetGenCruilla import PetGenCruilla
+from utils import make_composition, plot_user_vector, upload_image
 
 
 class State(Enum):
@@ -265,12 +266,11 @@ footer {{
 
 #qr_result_image img {{
     position: fixed;
-    height: 29vh;
+    height: 26vh;
     left: 50%;
-    z-index: 10;
-    top: 50%;
-    transform: translateY(50%);
-    transform: translateX(50%);
+    z-index: 29;
+    top: 55%;
+    transform: translateX(-50%);
     pointer-events: none;
     visibility: visible;
 }}
@@ -413,6 +413,12 @@ def set_avatar_image(image: Image.Image | None):
     avatar_image = image
 
 
+def set_result_qr_image(image: Image.Image | None):
+    global result_qr_image
+    logger.debug(f"Set result qr image: {image}")
+    result_qr_image = image
+
+
 def set_user_vector(vector: np.ndarray | None):
     global user_vector
     logger.debug(f"Set user vector: {vector}")
@@ -421,15 +427,37 @@ def set_user_vector(vector: np.ndarray | None):
 
 def generate():
     try:
+        # Generate pet
         logger.info("Generating pet image")
         pet_image = pet_generator.generate_pet_image(user_vector)
         set_pet_image(pet_image)
 
+        # Generate avatar
         logger.info("Generating avatar image")
         user_image_np = np.array(user_image)[:,:,::-1]
         avatar_image = avatar_generator.generate_avatar(user_image_np, user_vector)
         set_avatar_image(avatar_image)
-        
+
+        # Generate plot
+        user_vector_plot_img = plot_user_vector(user_vector)
+
+        # Create final composition
+        kwargs = {
+            config.composition_order["avatar"]: avatar_image,
+            config.composition_order["plot"]: user_vector_plot_img,
+            config.composition_order["pet"]: pet_image,
+        }
+        final_image = make_composition(
+            **kwargs,
+            width=config.composition_width,
+            height=config.composition_height,
+        )
+
+        # Upload composition image
+        image_link = upload_image(final_image)
+        image_result_qr = qrcode.make(image_link).get_image()
+        set_result_qr_image(image_result_qr)
+
         logger.success("Generation done")
     except Exception as e:
         logger.exception("Error generating images")
@@ -442,7 +470,7 @@ def on_image_photo(gr_image_photo):
     if gr_image_photo is not None:
         set_state(State.generating)
         generate()
-    return pet_image, avatar_image
+    return pet_image, avatar_image, result_qr_image
 
 
 def on_timer_update_state():
@@ -505,6 +533,7 @@ def on_button_restart():
     set_pet_image(None)
     set_user_vector(None)
     set_state(State.home)
+    set_result_qr_image(None)
     
     gr_image_photo = gr.Image(None)
     return gr_image_photo
@@ -569,6 +598,15 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
             elem_id="pet_image",
             elem_classes="static_image"
         )
+        gr_result_qr_image = gr.Image(
+            None,
+            show_download_button=False,
+            show_share_button=False,
+            show_fullscreen_button=False,
+            show_label=False,
+            elem_id="qr_result_image",
+            elem_classes="static_image"
+        )
         gr_button_result_restart = gr.Button(
             "",
             elem_id="button_restart",
@@ -605,7 +643,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
     gr_image_photo.input(
         on_image_photo,
         gr_image_photo,
-        [gr_image_pet, gr_image_avatar],
+        [gr_image_pet, gr_image_avatar, gr_result_qr_image],
         show_progress=False,
     )
 
