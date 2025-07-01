@@ -31,11 +31,17 @@ RUN sed -i '/#force_color_prompt=yes/c\force_color_prompt=yes' /home/user/.bashr
 # Install python dependencies
 RUN python -m pip install --upgrade pip
 RUN python -m pip install --upgrade setuptools
-RUN python -m pip install "numpy<2" matplotlib opencv-python-headless Pillow PyYAML \
-    cmake tqdm cython "fastapi[all]" gradio loguru IPython 
 
 # Install Torch
 RUN python -m pip install torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu121
 
+# Install TensorFlow
+RUN python -m pip install tensorflow==2.15.0
+
 # Install transformers and diffusers
 RUN python -m pip install transformers diffusers accelerate
+
+# Install app dependencies
+RUN python -m pip install "numpy<2" matplotlib opencv-python-headless Pillow PyYAML \
+    cmake tqdm cython "fastapi[all]" loguru IPython qrcode gradio==5.33.1 pandas \
+    scikit-learn scipy rembg==2.0.66 deepface onnxruntime
