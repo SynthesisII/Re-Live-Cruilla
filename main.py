@@ -1,11 +1,7 @@
 import argparse
 import json
-import tempfile
-import time
 from enum import Enum, auto
-from functools import partial
 from pathlib import Path
-from typing import Literal
 
 import gradio as gr
 import numpy as np
@@ -195,8 +191,8 @@ footer {{
     position: fixed;
     bottom: 8vh;
     z-index: 100;
-    height: 14%;
-    width: 11%;
+    height: 11%;
+    width: 10%;
     right: 50%;
     transform: translateX(50%);
 }}
@@ -275,6 +271,19 @@ footer {{
     visibility: visible;
 }}
 
+# photo_roi{{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -25%);
+    width: 443px;
+    height: 624px;
+    border: 2px solid rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    background-color: transparent;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+}}
 """
 
 
@@ -368,6 +377,7 @@ html_home = """
 
 html_take_photo = """
 <div id="take_photo_background"></div>
+<div id="photo_roi"></div>
 """
 
 
