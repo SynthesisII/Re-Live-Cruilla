@@ -524,7 +524,7 @@ def parse_qr(qr_data: str) -> np.ndarray:
 
 
 def on_webcam_qr(gr_webcam_qr):
-    if gr_webcam_qr:
+    if gr_webcam_qr and state is State.home:
         logger.info(f"Detected QR: {gr_webcam_qr}")
         try:
             user_vector = parse_qr(gr_webcam_qr)
@@ -546,7 +546,8 @@ def on_button_restart():
     set_result_qr_image(None)
     
     gr_image_photo = gr.Image(None)
-    return gr_image_photo
+    gr_button_result_restart = gr.Button(interactive=False)
+    return gr_image_photo, gr_button_result_restart
 
 
 with gr.Blocks(js=main_js, css=main_css) as demo:
@@ -643,7 +644,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
     gr_button_result_restart.click(
         on_button_restart,
         None,
-        [gr_image_photo],
+        [gr_image_photo, gr_button_result_restart],
         show_progress=False,
     )
     gr_button_take_photo.click(
