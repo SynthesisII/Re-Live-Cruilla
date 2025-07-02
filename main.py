@@ -455,6 +455,7 @@ def generate():
 
         # Upload composition image
         image_link = upload_image(final_image)
+        logger.info(f"Image uploaded to: {image_link}")
         image_result_qr = qrcode.make(image_link).get_image()
         set_result_qr_image(image_result_qr)
 
@@ -508,8 +509,7 @@ def parse_qr(qr_data: str) -> np.ndarray:
     data = json.loads(qr_data)
     vector = np.array(data["vector"])
     vector = vector.astype(np.float64)
-    # TODO: Remove this!!
-    vector = vector + np.random.normal(loc=0.0, scale=0.0001, size=vector.shape)
+    vector = vector + np.random.normal(loc=0.0, scale=1e-6, size=vector.shape)
     return vector
 
 
@@ -517,13 +517,13 @@ def on_webcam_qr(gr_webcam_qr):
     if gr_webcam_qr:
         logger.info(f"Detected QR: {gr_webcam_qr}")
         try:
-            user_vector =parse_qr(gr_webcam_qr)
+            user_vector = parse_qr(gr_webcam_qr)
             set_user_vector(user_vector)
             set_state(State.take_photo)
             return webcam_qr(scan_qr_enabled=False)
         except Exception as e:
             logger.exception("Error parsing the QR data")
-            raise gr.Error(labels.error_qr_data)
+            gr.Warning(labels.error_qr_data)
     return webcam_qr()
 
 

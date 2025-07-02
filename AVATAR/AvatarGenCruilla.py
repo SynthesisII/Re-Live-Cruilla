@@ -163,4 +163,5 @@ class AvatarGenCruilla:
             num_inference_steps=config.refiner_num_inference_steps,
             generator=torch.Generator(self.device).manual_seed(config.seed)
         )
-        return remove_background(refined_result.images[0])
+        return refined_result.images[0]
+        # return remove_background(refined_result.images[0])
