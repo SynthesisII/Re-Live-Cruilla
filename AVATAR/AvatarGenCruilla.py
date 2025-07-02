@@ -48,6 +48,7 @@ class AvatarGenCruilla:
         self.device = device
         
         logger.info("Loading stable diffusion models...")
+        self.generator = torch.Generator(device).manual_seed(config.seed)
 
         # Load base model
         self.base_pipe = AutoPipelineForImage2Image.from_pretrained(
@@ -149,7 +150,7 @@ class AvatarGenCruilla:
             strength=config.base_strength,
             guidance_scale=config.base_guidance_scale,
             num_inference_steps=config.base_num_inference_steps,
-            generator=torch.Generator(self.device).manual_seed(config.seed)
+            generator=self.generator,
         ).images
         base_image = base_result[0]
         
@@ -161,6 +162,7 @@ class AvatarGenCruilla:
             image=base_image,
             strength=config.refiner_strength,
             num_inference_steps=config.refiner_num_inference_steps,
-            generator=torch.Generator(self.device).manual_seed(config.seed)
+            generator=self.generator,
         )
-        return remove_background(refined_result.images[0])
+        return refined_result.images[0]
+        # return remove_background(refined_result.images[0])

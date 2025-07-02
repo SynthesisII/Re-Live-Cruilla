@@ -1,11 +1,7 @@
 import argparse
 import json
-import tempfile
-import time
 from enum import Enum, auto
-from functools import partial
 from pathlib import Path
-from typing import Literal
 
 import gradio as gr
 import numpy as np
@@ -195,8 +191,8 @@ footer {{
     position: fixed;
     bottom: 8vh;
     z-index: 100;
-    height: 14%;
-    width: 11%;
+    height: 11%;
+    width: 10%;
     right: 50%;
     transform: translateX(50%);
 }}
@@ -275,6 +271,19 @@ footer {{
     visibility: visible;
 }}
 
+# photo_roi{{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -25%);
+    width: 443px;
+    height: 624px;
+    border: 2px solid rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    background-color: transparent;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+}}
 """
 
 
@@ -368,6 +377,7 @@ html_home = """
 
 html_take_photo = """
 <div id="take_photo_background"></div>
+<div id="photo_roi"></div>
 """
 
 
@@ -455,6 +465,7 @@ def generate():
 
         # Upload composition image
         image_link = upload_image(final_image)
+        logger.info(f"Image uploaded to: {image_link}")
         image_result_qr = qrcode.make(image_link).get_image()
         set_result_qr_image(image_result_qr)
 
@@ -508,8 +519,7 @@ def parse_qr(qr_data: str) -> np.ndarray:
     data = json.loads(qr_data)
     vector = np.array(data["vector"])
     vector = vector.astype(np.float64)
-    # TODO: Remove this!!
-    vector = vector + np.random.normal(loc=0.0, scale=0.0001, size=vector.shape)
+    vector = vector + np.random.normal(loc=0.0, scale=1e-6, size=vector.shape)
     return vector
 
 
@@ -517,13 +527,13 @@ def on_webcam_qr(gr_webcam_qr):
     if gr_webcam_qr:
         logger.info(f"Detected QR: {gr_webcam_qr}")
         try:
-            user_vector =parse_qr(gr_webcam_qr)
+            user_vector = parse_qr(gr_webcam_qr)
             set_user_vector(user_vector)
             set_state(State.take_photo)
             return webcam_qr(scan_qr_enabled=False)
         except Exception as e:
             logger.exception("Error parsing the QR data")
-            raise gr.Error(labels.error_qr_data)
+            gr.Warning(labels.error_qr_data)
     return webcam_qr()
 
 
