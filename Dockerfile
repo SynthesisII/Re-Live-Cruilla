@@ -33,7 +33,8 @@ RUN python -m pip install --upgrade pip
 RUN python -m pip install --upgrade setuptools
 
 # Install Torch
-RUN python -m pip install torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu121
+# RUN python -m pip install torch torchvision torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu121
+RUN python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 
 # Install TensorFlow
 RUN python -m pip install tensorflow==2.15.0
