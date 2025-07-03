@@ -1,4 +1,5 @@
 
+import cv2
 import numpy as np
 import tensorflow.keras
 import torch
@@ -7,10 +8,10 @@ from diffusers import AutoPipelineForImage2Image
 from loguru import logger
 from PIL import Image
 from safetensors.torch import load_file
+from ultralytics import YOLO
 
 from . import config
-from .utils import (center_crop_to_square, generate_weighted_prompt,
-                    remove_background)
+from .utils import center_crop_to_aspect_ratio_np, generate_weighted_prompt
 
 
 class AvatarGenCruilla:
@@ -61,14 +62,17 @@ class AvatarGenCruilla:
         if attention_slicing:
             self.base_pipe.enable_attention_slicing()
         if cpu_offload:
-            self.base_pipe.enable_model_cpu_offload()
-            # self.base_pipe.enable_sequential_cpu_offload()
+            # self.base_pipe.enable_model_cpu_offload()
+            self.base_pipe.enable_sequential_cpu_offload()
         if xformers_attention:
             self.base_pipe.enable_xformers_memory_efficient_attention()
         
         # Load fine-tuned UNet
         state_dict = load_file(config.custom_unet_path)
         self.base_pipe.unet.load_state_dict(state_dict, strict=False)
+
+        logger.info("Loading YOLOv8 segmentation model...")
+        self.yolo_model = YOLO("yolov8n-seg.pt")
 
         # Load refiner model
         self.refiner_pipe = AutoPipelineForImage2Image.from_pretrained(
@@ -81,10 +85,29 @@ class AvatarGenCruilla:
         if attention_slicing:
             self.refiner_pipe.enable_attention_slicing()
         if cpu_offload:
-            self.refiner_pipe.enable_model_cpu_offload()
-            # self.refiner_pipe.enable_sequential_cpu_offload()
+            # self.refiner_pipe.enable_model_cpu_offload()
+            self.refiner_pipe.enable_sequential_cpu_offload()
         if xformers_attention:
             self.refiner_pipe.enable_xformers_memory_efficient_attention()
+
+    def _segment_and_replace_background(self, image: np.ndarray) -> np.ndarray:
+        """Detect a person and set an white background.
+        """
+        results = self.yolo_model(image)
+
+        for r in results:
+            if hasattr(r, 'masks') and r.masks is not None and len(r.masks.data) > 0:
+                mask = r.masks.data[0].cpu().numpy()  # First detected person
+                mask = (mask * 255).astype(np.uint8)
+                mask = cv2.resize(mask, (image.shape[1], image.shape[0]))
+
+                white_background = np.ones_like(image, dtype=np.uint8) * 255
+                result = np.where(mask[:, :, None] == 255, image, white_background)
+                return result
+
+        logger.warning("No person detected for segmentation. Returning original image.")
+        return image
+
 
     def _get_top_genres(self, user_vector: np.ndarray) -> list:
         top_indices = np.argsort(user_vector)[-3:][::-1]
@@ -130,23 +153,25 @@ class AvatarGenCruilla:
         Returns:
             Image.Image: The generated avatar image.
         """
-        analysis_result = self._analyze_face_image(image)
+        input_image = center_crop_to_aspect_ratio_np(image, (9,16))
+        input_image = self._segment_and_replace_background(input_image)
+        
+        analysis_result = self._analyze_face_image(input_image)
         analysis_result[0]["top_genres"] = self._get_top_genres(user_vector)
         prompts = generate_weighted_prompt(analysis_result)
         prompt = prompts[0]
         logger.debug(f"Using prompt: {prompt}")
 
-        rgb_img = image[:,:,::-1]
+        rgb_img = input_image[:,:,::-1]
         pil_img = Image.fromarray(rgb_img)
-        input_image = center_crop_to_square(pil_img)
-        input_image = input_image.resize(config.input_image_size)
+        pil_img = pil_img.resize(config.input_image_size)
 
         # First pass with base model (now using input image)
         logger.debug("Generating avatar image with reference image...")
         base_result = self.base_pipe(
             prompt=prompt,
             negative_prompt=self.negative_prompt,
-            image=input_image,
+            image=pil_img,
             strength=config.base_strength,
             guidance_scale=config.base_guidance_scale,
             num_inference_steps=config.base_num_inference_steps,
@@ -165,4 +190,3 @@ class AvatarGenCruilla:
             generator=self.generator,
         )
         return refined_result.images[0]
-        # return remove_background(refined_result.images[0])

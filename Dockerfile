@@ -45,7 +45,7 @@ RUN python -m pip install transformers diffusers accelerate
 # Install app dependencies
 RUN python -m pip install "numpy<2" matplotlib opencv-python-headless Pillow PyYAML \
     cmake tqdm cython "fastapi[all]" loguru IPython qrcode gradio==5.33.1 pandas \
-    scikit-learn scipy rembg==2.0.66 deepface onnxruntime scp paramiko
+    scikit-learn scipy rembg==2.0.66 deepface onnxruntime scp paramiko ultralytics
 
 COPY gradio_webcam_qr-0.0.8-py3-none-any.whl ./
 RUN pip install "./gradio_webcam_qr-0.0.8-py3-none-any.whl"

@@ -1,5 +1,5 @@
 import random
-from rembg import remove
+# from rembg import remove
 from PIL import Image
 import io
 
@@ -21,6 +21,38 @@ def center_crop_to_square(img):
     right = (width + min_dim) // 2
     bottom = (height + min_dim) // 2
     return img.crop((left, top, right, bottom))
+
+
+def center_crop_to_aspect_ratio_np(image, target_ratio=(16, 9)):
+    """Crops an image to a centered aspect ratio using NumPy.
+
+    Parameters:
+        image (np.ndarray): The input image as a NumPy array (H, W, C).
+        target_ratio (tuple): Desired aspect ratio as (width_ratio, height_ratio), e.g., (16, 9).
+
+    Returns:
+        np.ndarray: Cropped image with the specified aspect ratio.
+    """
+    height, width, channels = image.shape
+    target_w, target_h = target_ratio
+    target_aspect = target_w / target_h
+    current_aspect = width / height
+
+    if current_aspect > target_aspect:
+        # Image is too wide — crop width
+        new_width = int(height * target_aspect)
+        left = (width - new_width) // 2
+        right = left + new_width
+        cropped_image = image[:, left:right]
+    else:
+        # Image is too tall — crop height
+        new_height = int(width / target_aspect)
+        top = (height - new_height) // 2
+        bottom = top + new_height
+        cropped_image = image[top:bottom, :]
+
+    return cropped_image
+
 
 def generate_weighted_prompt(analysis_result):
     """
@@ -224,24 +256,24 @@ def generate_weighted_prompt(analysis_result):
 
     return prompts
 
-def remove_background(img: Image.Image) -> Image.Image:
-    """
-    Removes the background from a PIL image using the rembg model.
+# def remove_background(img: Image.Image) -> Image.Image:
+#     """
+#     Removes the background from a PIL image using the rembg model.
 
-    Parameters:
-        img (PIL.Image): Input image.
+#     Parameters:
+#         img (PIL.Image): Input image.
 
-    Returns:
-        PIL.Image: Image with background removed (transparent background).
-    """
-    # Convert PIL image to bytes
-    buffered = io.BytesIO()
-    img.save(buffered, format="PNG")
-    img_bytes = buffered.getvalue()
+#     Returns:
+#         PIL.Image: Image with background removed (transparent background).
+#     """
+#     # Convert PIL image to bytes
+#     buffered = io.BytesIO()
+#     img.save(buffered, format="PNG")
+#     img_bytes = buffered.getvalue()
 
-    # Remove background
-    output_bytes = remove(img_bytes)
+#     # Remove background
+#     output_bytes = remove(img_bytes)
 
-    # Convert bytes back to PIL image
-    output_img = Image.open(io.BytesIO(output_bytes)).convert("RGBA")
-    return output_img
+#     # Convert bytes back to PIL image
+#     output_img = Image.open(io.BytesIO(output_bytes)).convert("RGBA")
+#     return output_img
