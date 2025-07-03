@@ -271,7 +271,7 @@ footer {{
     visibility: visible;
 }}
 
-# photo_roi{{
+#photo_roi{{
     position: fixed;
     top: 50%;
     left: 50%;
