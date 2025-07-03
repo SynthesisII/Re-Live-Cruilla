@@ -14,7 +14,8 @@ import config
 import labels
 from AVATAR.AvatarGenCruilla import AvatarGenCruilla
 from PET.PetGenCruilla import PetGenCruilla
-from utils import make_composition, plot_user_vector, upload_image
+from utils import (make_avatar_composition, make_final_composition,
+                   make_pet_composition, plot_user_vector, upload_image)
 
 
 class State(Enum):
@@ -240,32 +241,32 @@ footer {{
 
 #avatar_image img {{
     position: fixed;
-    height: 55vh;
-    left: -31vw;
+    height: 70vh;
+    left: -30vw;
     z-index: 10;
     top: 50%;
-    transform: translateY(-45%);
+    transform: translateY(-38%);
     pointer-events: none;
     visibility: visible;
 }}
 
 #pet_image img {{
     position: fixed;
-    height: 55vh;
-    right: -31vw;
+    height: 70vh;
+    right: -30vw;
     z-index: 10;
     top: 50%;
-    transform: translateY(-45%);
+    transform: translateY(-38%);
     pointer-events: none;
     visibility: visible;
 }}
 
 #qr_result_image img {{
     position: fixed;
-    height: 26vh;
+    height: 30vh;
     left: 50%;
     z-index: 29;
-    top: 55%;
+    top: 51%;
     transform: translateX(-50%);
     pointer-events: none;
     visibility: visible;
@@ -459,27 +460,24 @@ def generate():
         # Generate pet
         logger.info("Generating pet image")
         pet_image = pet_generator.generate_pet_image(user_vector)
-        set_pet_image(pet_image)
+        comp_pet_image = make_pet_composition(pet_image)
+        set_pet_image(comp_pet_image)
 
         # Generate avatar
         logger.info("Generating avatar image")
         user_image_np = np.array(user_image)[:,:,::-1]
         avatar_image = avatar_generator.generate_avatar(user_image_np, user_vector)
-        set_avatar_image(avatar_image)
+        comp_avatar_image = make_avatar_composition(avatar_image)
+        set_avatar_image(comp_avatar_image)
 
         # Generate plot
         user_vector_plot_img = plot_user_vector(user_vector)
 
-        # Create final composition
-        kwargs = {
-            config.composition_order["avatar"]: avatar_image,
-            config.composition_order["plot"]: user_vector_plot_img,
-            config.composition_order["pet"]: pet_image,
-        }
-        final_image = make_composition(
-            **kwargs,
-            width=config.composition_width,
-            height=config.composition_height,
+        # Create composition
+        final_image = make_final_composition(
+            avatar_image=avatar_image,
+            pet_image=pet_image,
+            plot_image=user_vector_plot_img,
         )
 
         # Upload composition image

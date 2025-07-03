@@ -2,6 +2,7 @@ import tempfile
 import time
 import uuid
 from io import BytesIO
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,13 +34,15 @@ def plot_user_vector(user_vector: np.ndarray) -> Image.Image:
     angles += angles[:1]
 
     # Plot
-    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+    fig, ax = plt.subplots(figsize=(7.5, 7.5), subplot_kw=dict(polar=True))
     ax.plot(angles, values, color='tab:blue', linewidth=2)
     ax.fill(angles, values, color='tab:blue', alpha=0.25)
     ax.set_yticklabels([])
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(labels, fontsize=12)
     # ax.set_title("", y=1.1)
+
+    ax.set_xticklabels(labels, fontsize=18)
 
     # Convert to PIL Image
     buf = BytesIO()
@@ -66,25 +69,60 @@ def resize_and_pad_rgba(
     return new_img
 
 
-def make_composition(
-    img_1: Image.Image,
-    img_2: Image.Image,
-    img_3: Image.Image,
-    width: int,
-    height: int,
+def make_final_composition(
+    avatar_image: Image.Image,
+    pet_image: Image.Image,
+    plot_image: Image.Image,
 ) -> Image.Image:
-    canvas = Image.new("RGBA", (width, height), (255, 255, 255, 255))
-    slot_size = (width // 3, height)
+    avatar_image = avatar_image.convert("RGBA")
+    pet_image = pet_image.convert("RGBA")
+    plot_image = plot_image.convert("RGBA")
 
-    img_1 = resize_and_pad_rgba(img_1, slot_size)
-    img_2 = resize_and_pad_rgba(img_2, slot_size)
-    img_3 = resize_and_pad_rgba(img_3, slot_size)
+    res_path = Path(__file__).parent / "res/"
+    final_frame_path = res_path / "composition_background.png"
+    final_frame = Image.open(final_frame_path).convert("RGBA")
 
-    canvas.paste(img_1, (0, 0),                img_1)
-    canvas.paste(img_2, (slot_size[0], 0),     img_2)
-    canvas.paste(img_3, (slot_size[0] * 2, 0), img_3)
+    final_canvas = Image.new("RGBA", final_frame.size, (255, 255, 255, 255))
+    final_canvas.paste(avatar_image, (20, 33), avatar_image)
+    final_canvas.paste(final_frame, (0, 0), final_frame)
 
-    return canvas
+    pet_size = 800
+    pet_image_resized = pet_image.resize((pet_size, pet_size))
+    pet_w, pet_h = pet_image_resized.size
+    canvas_w, canvas_h = final_canvas.size
+    x = canvas_w - pet_w
+    y = canvas_h - pet_h - 150
+    final_canvas.paste(pet_image_resized, (x, y), pet_image_resized)
+
+    x = 800
+    y = 500
+    final_canvas.paste(plot_image, (x, y), plot_image)
+    return final_canvas
+
+
+def make_pet_composition(pet_image: Image.Image) -> Image.Image:
+    pet_frame_path = Path(__file__).parent / "res/frame_pet.png"
+    pet_size = 800
+    frame_pet = Image.open(pet_frame_path).convert("RGBA")
+    pet_image_resized = pet_image.resize((pet_size, pet_size))
+    pet_canvas = Image.new("RGBA", frame_pet.size, (255, 255, 255, 255))
+    pet_w, pet_h = pet_image_resized.size
+    canvas_w, canvas_h = pet_canvas.size
+    x = int((canvas_w/2)-(pet_w/2))
+    y = canvas_h - pet_h - 50
+    pet_canvas.paste(pet_image_resized, (x, y), pet_image_resized)
+    pet_canvas.paste(frame_pet, (0, 0), frame_pet)
+    return pet_canvas
+
+
+def make_avatar_composition(avatar_image: Image.Image) -> Image.Image:
+    avatar_image = avatar_image.convert("RGBA")
+    avatar_frame_path = Path(__file__).parent / "res/frame_avatar.png"
+    frame_avatar = Image.open(avatar_frame_path).convert("RGBA")
+    avatar_canvas = Image.new("RGBA", frame_avatar.size, (255, 255, 255, 255))
+    avatar_canvas.paste(avatar_image, (2, 0), avatar_image)
+    avatar_canvas.paste(frame_avatar, (0, 0), frame_avatar)
+    return avatar_canvas
 
 
 def upload_image(image: Image.Image) -> str:
