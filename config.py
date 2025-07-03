@@ -16,15 +16,15 @@ composition_order = {
 }
 
 # CVC images server
-ssh_jump_server_ip = ""
+ssh_jump_server_ip = "158.109.8.8"
 ssh_jump_server_port = 22345
-ssh_jump_server_user = ""
+ssh_jump_server_user = "demos"
 ssh_jump_server_pwd = ""
 
-ssh_images_server_ip = ""
+ssh_images_server_ip = "158.109.8.11"
 ssh_images_server_port = 22345
-ssh_images_server_user = ""
+ssh_images_server_user = "demos"
 ssh_images_server_pwd = ""
 
 server_root_path = "/bck1/www/cruilla/{}"
-server_public_url = "http:///cruilla/{}"
+server_public_url = "http://158.109.8.11/cruilla/{}"
