@@ -537,7 +537,7 @@ def on_demo_load():
 def parse_qr(qr_data: str) -> np.ndarray:
     data = json.loads(qr_data)
     vector = np.array(data["vector"])
-    vector = vector.astype(np.float64)
+    vector = vector.astype(np.float64) / 100
     vector = vector + np.random.normal(loc=0.0, scale=1e-6, size=vector.shape)
     return vector
 
