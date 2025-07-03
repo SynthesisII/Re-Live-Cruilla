@@ -309,23 +309,42 @@ main_js = f"""
     setInterval(checkAndClickWebcam, checkWebcamInterval);
     
     function waitForRestart() {{
-        selector = '#button_restart'
-        const watch = () => {{
-            const interval = setInterval(() => {{
-                const button = document.querySelector(selector);
-                if (button && !button.disabled) {{
-                    clearInterval(interval);
-                    console.log(`Restart button found. Waiting ${{restartWait / 1000}} seconds before clicking.`);
+        const selector = '#button_restart';
+        let clickTimeout = null;
+        let hasClicked = false;
 
-                    setTimeout(() => {{
-                        button.click();
-                        console.log('Restart button clicked');
-                        watch();
+        setInterval(() => {{
+            const button = document.querySelector(selector);
+
+            if (button && !button.disabled) {{
+                if (!clickTimeout) {{
+                    console.log(`Button found. Will click in ${{restartWait / 1000}} seconds.`);
+                    clickTimeout = setTimeout(() => {{
+                        const btn = document.querySelector(selector);
+                        if (btn && !btn.disabled) {{
+                            btn.click();
+                            console.log('Button clicked.');
+                            // Reset for future clicks
+                            hasClicked = true;
+                        }} else {{
+                            console.log('Button no longer available at click time.');
+                        }}
+                        clickTimeout = null;
                     }}, restartWait);
                 }}
-            }}, restartInterval);
-        }};
-        watch();
+            }} else {{
+                if (clickTimeout) {{
+                    clearTimeout(clickTimeout);
+                    clickTimeout = null;
+                    console.log('Button not found or disabled. Click timeout cancelled.');
+                }}
+
+                // Reset click flag when button disappears so we can click again next time
+                if (hasClicked) {{
+                    hasClicked = false;
+                }}
+            }}
+        }}, restartInterval);
     }}
     waitForRestart();
 }}
