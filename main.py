@@ -557,6 +557,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
         gr_webcam_qr = webcam_qr(
             elem_id="webcam_qr",
             scan_qr_once=False,
+            show_detection=False,
         )
         gr_image_survey_qr = gr.Image(
             show_download_button=False,

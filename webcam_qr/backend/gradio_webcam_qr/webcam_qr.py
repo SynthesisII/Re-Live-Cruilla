@@ -30,12 +30,14 @@ class webcam_qr(Component):
         placeholder: str | None = None,
         scan_qr_enabled: bool = True,
         scan_qr_once: bool = True,
+        show_detection: bool = True,
     ):
         self.height = height
         self.width = width
         self.placeholder = placeholder
         self.scan_qr_enabled = scan_qr_enabled
         self.scan_qr_once = scan_qr_once
+        self.show_detection = show_detection
         super().__init__(
             label=label,
             inputs=inputs,

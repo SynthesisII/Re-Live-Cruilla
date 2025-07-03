@@ -23,6 +23,7 @@
 
 	export let scan_qr_enabled:boolean;
 	export let scan_qr_once: boolean;
+	export let show_detection: boolean;
 
 	export let gradio: Gradio<{
 		error: string;
@@ -55,6 +56,7 @@
 		{show_label}
 		scanQREnabled={scan_qr_enabled}
 		scanQROnce={scan_qr_once}
+		showDetection={show_detection}
 	>
 		<Empty unpadded_box={true} size="large"><Image /></Empty>
 	</ImageUploader>

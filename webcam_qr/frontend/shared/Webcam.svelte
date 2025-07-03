@@ -12,6 +12,7 @@
 	export let value: null | string;
 	export let scanQREnabled = true;
 	export let scanQROnce = true;
+	export let showDetection = true;
 
 	const dispatch = createEventDispatcher<{
 		error: string;
@@ -82,11 +83,13 @@
 				dispatch("change");
 				
 				// Draw the QR bounding box
-				const lineColor = "#FF3B58";
-				drawLine(ctx, code.location.topLeftCorner, code.location.topRightCorner, lineColor);
-				drawLine(ctx, code.location.topRightCorner, code.location.bottomRightCorner, lineColor);
-				drawLine(ctx, code.location.bottomRightCorner, code.location.bottomLeftCorner, lineColor);
-				drawLine(ctx, code.location.bottomLeftCorner, code.location.topLeftCorner, lineColor);
+				if (showDetection) {
+					const lineColor = "#FF3B58";
+					drawLine(ctx, code.location.topLeftCorner, code.location.topRightCorner, lineColor);
+					drawLine(ctx, code.location.topRightCorner, code.location.bottomRightCorner, lineColor);
+					drawLine(ctx, code.location.bottomRightCorner, code.location.bottomLeftCorner, lineColor);
+					drawLine(ctx, code.location.bottomLeftCorner, code.location.topLeftCorner, lineColor);
+				}
 				
 				// To scan only once:
 				if (scanQROnce) {

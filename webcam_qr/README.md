@@ -10,7 +10,7 @@ app_file: space.py
 ---
 
 # `gradio_webcam_qr`
-<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.0.8%20-%20orange">  
+<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.0.9%20-%20orange">  
 
 Python library for easily interacting with trained machine learning models
 
@@ -37,6 +37,7 @@ with gr.Blocks() as demo:
         scan_qr_enabled=True,
         scan_qr_once=False,
         show_label=False,
+        show_detection=False,
     )
     text_qr = gr.Textbox(label="QR Code")
     button_on = gr.Button("Enable QR Scanning")
@@ -276,6 +277,19 @@ bool
 
 <tr>
 <td align="left"><code>scan_qr_once</code></td>
+<td align="left" style="width: 25%;">
+
+```python
+bool
+```
+
+</td>
+<td align="left"><code>True</code></td>
+<td align="left">None</td>
+</tr>
+
+<tr>
+<td align="left"><code>show_detection</code></td>
 <td align="left" style="width: 25%;">
 
 ```python

@@ -12,6 +12,7 @@ with gr.Blocks() as demo:
         scan_qr_enabled=True,
         scan_qr_once=False,
         show_label=False,
+        show_detection=False,
     )
     text_qr = gr.Textbox(label="QR Code")
     button_on = gr.Button("Enable QR Scanning")

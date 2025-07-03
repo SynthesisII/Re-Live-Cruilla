@@ -10,6 +10,7 @@
 
 	export let scanQREnabled:boolean;
 	export let scanQROnce: boolean;
+	export let showDetection: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -29,6 +30,7 @@
 			on:error
 			{scanQREnabled}
 			{scanQROnce}
+			{showDetection}
 			on:change={() => dispatch("change")}
 		/>
 	</div>
