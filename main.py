@@ -486,6 +486,10 @@ def generate():
         image_result_qr = qrcode.make(image_link).get_image()
         set_result_qr_image(image_result_qr)
 
+        # pet_image.save("pet_image.png")
+        # avatar_image.save("avatar_image.png")
+        # user_vector_plot_img.save("user_vector_plot_img.png")
+
         logger.success("Generation done")
     except Exception as e:
         logger.exception("Error generating images")
@@ -533,10 +537,9 @@ def on_demo_load():
 
 
 def parse_qr(qr_data: str) -> np.ndarray:
-    data = json.loads(qr_data)
-    vector = np.array(data["vector"])
-    vector = vector.astype(np.float64) / 100
+    vector = (np.array([float(i) for i in qr_data.split(",")]) / 100) .astype(np.float64)
     vector = vector + np.random.normal(loc=0.0, scale=1e-6, size=vector.shape)
+    vector = np.clip(vector, 0, 10)
     return vector
 
 
