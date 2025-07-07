@@ -630,7 +630,6 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
             elem_id="webcam_qr",
             scan_qr_once=False,
             show_detection=False,
-            scan_qr_enabled=config.enable_qr_camera_reader,
             visible=config.enable_qr_camera_reader,
         )
         gr_text_qr_code = gr.Textbox(
