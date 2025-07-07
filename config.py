@@ -6,6 +6,9 @@ ui_update_state_interval = 1 # seconds
 
 cam_count_down = 3  # seconds
 
+enable_qr_camera_reader = True
+enable_qr_scanner_input = True
+
 # CVC images server
 ssh_jump_server_ip = "158.109.8.8"
 ssh_jump_server_port = 22345

@@ -285,13 +285,20 @@ footer {{
     box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
     z-index: 100;
 }}
+
+#qr_code_text {{
+    position: fixed;
+    left: -9999px;
+}}
 """
 
 
 # Page JS
 main_js = f"""
 () => {{
+    const enableQRInput = {'true' if config.enable_qr_scanner_input else 'false'};
     const checkWebcamInterval = 1000;
+    const focusQRInterval = 1000;
     const restartInterval = 3000;
     const restartWait = {config.reset_wait_time} * 1000;
 
@@ -348,6 +355,38 @@ main_js = f"""
         }}, restartInterval);
     }}
     waitForRestart();
+
+    if (enableQRInput) {{
+        document.addEventListener('keydown', (event) => {{
+            if (event.key === 'Enter') {{
+                console.log("Enter key pressed");
+                const qr_input_button = document.getElementById("qr_input_button");
+                if (qr_input_button) {{
+                    console.log("qr_input_button click");
+                    qr_input_button.click();
+                }} else {{
+                    console.log("qr_input_button not found");
+                }}
+            }}
+        }});
+
+        function focusQRInput() {{
+            const column_home = document.getElementById("column_home");
+            if (!column_home || column_home.classList.contains('hide')) {{
+                return;
+            }}
+            const qr_code_text = document.querySelector('#qr_code_text textarea');
+            if (qr_code_text) {{
+                if (document.activeElement !== qr_code_text) {{
+                    console.log("QR code text input focus");
+                    qr_code_text.focus();
+                }}
+            }} else {{
+                console.log("QR code text input not found");
+            }}
+        }}
+        setInterval(focusQRInput, focusQRInterval);
+    }}
 }}
 """
 
@@ -486,10 +525,6 @@ def generate():
         image_result_qr = qrcode.make(image_link).get_image()
         set_result_qr_image(image_result_qr)
 
-        # pet_image.save("pet_image.png")
-        # avatar_image.save("avatar_image.png")
-        # user_vector_plot_img.save("user_vector_plot_img.png")
-
         logger.success("Generation done")
     except Exception as e:
         logger.exception("Error generating images")
@@ -516,7 +551,8 @@ def on_timer_update_state():
 
     if state is State.home:
         gr_col_home = gr.Column(visible=True)
-        gr_webcam_qr = webcam_qr(scan_qr_enabled=True)
+        if config.enable_qr_camera_reader:
+            gr_webcam_qr = webcam_qr(scan_qr_enabled=True)
     elif state is State.take_photo:
         gr_col_take_photo = gr.Column(visible=True)
     elif state is State.generating:
@@ -537,14 +573,17 @@ def on_demo_load():
 
 
 def parse_qr(qr_data: str) -> np.ndarray:
+    vector_shape = (18,)
     vector = (np.array([float(i) for i in qr_data.split(",")]) / 100) .astype(np.float64)
     vector = vector + np.random.normal(loc=0.0, scale=1e-6, size=vector.shape)
     vector = np.clip(vector, 0, 10)
+    if vector.shape != vector_shape:
+        raise ValueError(f"Invalid QR vector size: {vector.shape}, expected {vector_shape}")
     return vector
 
 
 def on_webcam_qr(gr_webcam_qr):
-    if gr_webcam_qr and state is State.home:
+    if gr_webcam_qr and state is State.home and config.enable_qr_camera_reader:
         logger.info(f"Detected QR: {gr_webcam_qr}")
         try:
             user_vector = parse_qr(gr_webcam_qr)
@@ -555,6 +594,19 @@ def on_webcam_qr(gr_webcam_qr):
             logger.exception("Error parsing the QR data")
             gr.Warning(labels.error_qr_data)
     return webcam_qr()
+
+
+def on_button_qr_input(gr_text_qr_code):
+    if gr_text_qr_code and state is State.home and config.enable_qr_scanner_input:
+        logger.info(f"QR code text input: {gr_text_qr_code}")
+        try:
+            user_vector = parse_qr(gr_text_qr_code)
+            set_user_vector(user_vector)
+            set_state(State.take_photo)
+        except Exception as e:
+            logger.exception("Error parsing the QR data")
+            gr.Warning(labels.error_qr_data)
+    return ""
 
 
 def on_button_restart():
@@ -572,12 +624,21 @@ def on_button_restart():
 
 with gr.Blocks(js=main_js, css=main_css) as demo:
     gr_timer_update_state = gr.Timer(config.ui_update_state_interval)
-    with gr.Column(visible=state is State.home) as gr_col_home:
+    with gr.Column(visible=state is State.home, elem_id="column_home") as gr_col_home:
         gr.HTML(html_home)
         gr_webcam_qr = webcam_qr(
             elem_id="webcam_qr",
             scan_qr_once=False,
             show_detection=False,
+            scan_qr_enabled=config.enable_qr_camera_reader,
+            visible=config.enable_qr_camera_reader,
+        )
+        gr_text_qr_code = gr.Textbox(
+            elem_id="qr_code_text",
+        )
+        gr_button_qr_input = gr.Button(
+            visible=False,
+            elem_id="qr_input_button",
         )
         gr_image_survey_qr = gr.Image(
             show_download_button=False,
@@ -662,6 +723,12 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
         gr_webcam_qr,
         show_progress=False,
     )
+    gr_button_qr_input.click(
+        on_button_qr_input,
+        gr_text_qr_code,
+        gr_text_qr_code,
+        show_progress=False,
+    )
     gr_button_result_restart.click(
         on_button_restart,
         None,
@@ -678,6 +745,7 @@ with gr.Blocks(js=main_js, css=main_css) as demo:
         [gr_image_pet, gr_image_avatar, gr_result_qr_image],
         show_progress=False,
     )
+
 
 if __name__ == "__main__":
     logger.info("Launching Gradio app")
