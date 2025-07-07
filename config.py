@@ -1,5 +1,5 @@
 # Gradio
-survey_link = "https://www.google.com/"
+survey_link = "https://cruillia.vercel.app/ca/relive"
 
 reset_wait_time = 120 # seconds
 ui_update_state_interval = 1 # seconds
