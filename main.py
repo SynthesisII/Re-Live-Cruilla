@@ -59,7 +59,6 @@ avatar_generator = AvatarGenCruilla()
 # Assets paths
 root_path = Path(__file__).parent
 favicon_path = str(root_path / "res/favicon.png").replace('\\', '/')
-home_background_path = str(root_path / "res/home_background.png").replace('\\', '/')
 photo_background_path = str(root_path / "res/photo_background.png").replace('\\', '/')
 results_background_path = str(root_path / "res/results_background.png").replace('\\', '/')
 generating_background_path = str(root_path / "res/generating_background.png").replace('\\', '/')
@@ -67,6 +66,10 @@ camera_button_path = str(root_path / "res/camera.png").replace('\\', '/')
 clear_camera_path = str(root_path / "res/clear_image.png").replace('\\', '/')
 end_button_path = str(root_path / "res/end.png").replace('\\', '/')
 generating_video_path = str(root_path / "res/generating_video.mp4").replace('\\', '/')
+if config.enable_qr_camera_reader:
+    home_background_path = str(root_path / "res/home_background.png").replace('\\', '/')
+else:
+    home_background_path = str(root_path / "res/home_background_no_cam.png").replace('\\', '/')
 
 
 # Page CSS
@@ -176,7 +179,7 @@ footer {{
 
 #qr_survey img {{
     position: fixed;
-    bottom: 3vh;
+    bottom: {3 if config.enable_qr_camera_reader else 20}vh;
     right: -25vw;
     visibility: visible;
     pointer-events: none;
