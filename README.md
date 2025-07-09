@@ -1,4 +1,4 @@
-![Logo_nobg](https://github.com/user-attachments/assets/c26133b6-a90a-4273-81a8-e3c5f959176b)
+<img width="968" alt="Logo" src="https://github.com/user-attachments/assets/028f5fea-94fc-46e8-b119-0aa16ebc13d8" />
 
 # RE:LIVE CRUÏLLA - Codebase Overview
 
