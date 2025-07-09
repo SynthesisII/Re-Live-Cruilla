@@ -1,3 +1,5 @@
+![Logo_nobg](https://github.com/user-attachments/assets/c26133b6-a90a-4273-81a8-e3c5f959176b)
+
 # RE:LIVE CRUÏLLA - Codebase Overview
 
 This repository contains all the necessary scripts to Train, Evaluate, and Test the three components 
