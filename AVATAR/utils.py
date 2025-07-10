@@ -169,11 +169,9 @@ def generate_weighted_prompt(analysis_result):
     all_categories = ['head', 'face', 'neck', 'torso', 'arms', 'wrist', 'shoulders', 'hands', 'waist', 'hair', 'ears', 'mouth', 'misc']
 
     for filename, data in analysis_result.items():
-        if not all(k in data for k in ['race', 'gender', 'top_genres']):
+        if 'top_genres' not in data:
             continue
 
-        race = data['race']
-        gender = data['gender'].lower()
         top_genres = data['top_genres']
 
         # Escoger los 2 géneros principales
@@ -213,11 +211,11 @@ def generate_weighted_prompt(analysis_result):
         background = "white plain background with no detail"
 
         prompt = (
-            f"A {race} {gender}, waist up portrait, wearing {outfit}, "
+            f"A person, waist up portrait, wearing {outfit}, "
             f"reflecting their music preferences (primarily {primary_genre}). "
             f"{'They have ' + element_names[0] + ' as their most prominent feature. ' if element_names else ''}"
             f"anime style, cartoon drawing, 2D illustration, cel shading, clean lineart, colorful, "
-            f"{background}, dramatic lighting, ultra-detailed, digital painting, vibrant, highly stylized, high quality"
+            f"{background}, dramatic lighting, digital painting, vibrant, highly stylized, high quality"
         )
 
         prompts[filename] = prompt

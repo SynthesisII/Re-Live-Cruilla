@@ -1,7 +1,6 @@
 import os
 import json
 import gc
-from deepface import DeepFace
 import numpy as np
 import sys
 
@@ -21,11 +20,12 @@ genres = ['Comedy','Art','Chill','Food','Social','Rock','Pop','Soul','Jazz','Ele
 def analyze_image():
     result = {}
     try:
-        demography = DeepFace.analyze(input_image_path, actions=['gender', 'race'], enforce_detection=False)
-        features = {
-            "race": demography[0]['dominant_race'] if demography else "unknown",
-            "gender": demography[0]['dominant_gender'] if demography else "unknown"
-        }
+        # demography = DeepFace.analyze(input_image_path, actions=['gender', 'race'], enforce_detection=False)
+        # features = {
+        #     "race": demography[0]['dominant_race'] if demography else "unknown",
+        #     "gender": demography[0]['dominant_gender'] if demography else "unknown"
+        # }
+        features = {}
         top_indices = np.argsort(user_vector)[-3:][::-1]
         features["top_genres"] = [(genres[i], user_vector[i]) for i in top_indices]
         result[os.path.basename(input_image_path)] = features
