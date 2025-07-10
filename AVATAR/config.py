@@ -14,9 +14,9 @@ refiner_model_path = "stabilityai/stable-diffusion-xl-refiner-1.0"
 custom_unet_path = models_path / "Good_prompts.safetensors"
 
 input_image_size = (720, 1280)
-seed = 42
+seed = 7
 
-base_strength = 0.7
+base_strength = 0.8
 base_guidance_scale = 8.5
 base_num_inference_steps = 20
 
