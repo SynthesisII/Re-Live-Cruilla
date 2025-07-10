@@ -6,7 +6,7 @@ ui_update_state_interval = 1 # seconds
 
 cam_count_down = 3  # seconds
 
-enable_qr_camera_reader = True
+enable_qr_camera_reader = False
 enable_qr_scanner_input = True
 
 # CVC images server

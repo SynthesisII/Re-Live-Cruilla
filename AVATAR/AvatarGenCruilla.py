@@ -166,6 +166,8 @@ class AvatarGenCruilla:
         pil_img = Image.fromarray(rgb_img)
         pil_img = pil_img.resize(config.input_image_size)
 
+        pil_img.save("input_image.png")
+
         # First pass with base model (now using input image)
         logger.debug("Generating avatar image with reference image...")
         base_result = self.base_pipe(
