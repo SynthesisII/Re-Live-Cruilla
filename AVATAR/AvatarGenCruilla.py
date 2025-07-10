@@ -164,7 +164,6 @@ class AvatarGenCruilla:
         rgb_img = input_image[:,:,::-1]
         pil_img = Image.fromarray(rgb_img)
         pil_img = pil_img.resize(config.input_image_size)
-        pil_img.save("input_image.png")
 
         pil_img.save("input_image.png")
 
