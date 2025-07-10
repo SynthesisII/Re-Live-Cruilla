@@ -17,11 +17,9 @@ from .utils import center_crop_to_aspect_ratio_np, generate_weighted_prompt
 class AvatarGenCruilla:
 
     negative_prompt = """
-        deformed, blurry, bad anatomy, disfigured, poorly drawn face, mutation,
-        extra limbs, ugly, duplicate, morbid, mutilated, cluttered background,
-        busy background, detailed background, colorful background, text,
-        watermark, textured background, patterned background, shadows,
-        gradients, scenery, objects, furniture, environment, landscape,
+        realistic person, dark skin, brown skin, photorealism, deformed, blurry, bad anatomy, disfigured, poorly drawn face, mutation,
+        extra limbs, ugly, duplicate, morbid, mutilated, cluttered background,text,
+        watermark, textured background, patterned background, shadows, scenery, objects, furniture, environment, landscape,
         people in background, background elements, depth of field,
         photo background, realistic background, 3D background, noise, artifacts
     """
@@ -156,7 +154,8 @@ class AvatarGenCruilla:
         input_image = center_crop_to_aspect_ratio_np(image, (9,16))
         input_image = self._segment_and_replace_background(input_image)
         
-        analysis_result = self._analyze_face_image(input_image)
+        #analysis_result = self._analyze_face_image(input_image)
+        analysis_result = {0: {}}
         analysis_result[0]["top_genres"] = self._get_top_genres(user_vector)
         prompts = generate_weighted_prompt(analysis_result)
         prompt = prompts[0]
@@ -165,6 +164,7 @@ class AvatarGenCruilla:
         rgb_img = input_image[:,:,::-1]
         pil_img = Image.fromarray(rgb_img)
         pil_img = pil_img.resize(config.input_image_size)
+        pil_img.save("input_image.png")
 
         # First pass with base model (now using input image)
         logger.debug("Generating avatar image with reference image...")
